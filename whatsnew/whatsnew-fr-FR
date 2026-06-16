@@ -1,4 +1,5 @@
-• Correction : les contacts restent affichés après redémarrage de l'appli
-• Appui long sur un message pour le modifier ou le supprimer
-• Gestion des groupes : renommer, ajouter ou retirer des membres
-• Correction du titre de conversation (affichait l'identifiant au lieu du nom)
+• Notifications quand un message est reçu (appli ouverte ou en arrière-plan)
+• Quitter ou supprimer un groupe depuis les paramètres du groupe
+• Glisser vers le bas pour actualiser la liste des conversations
+• Le nom du groupe se met à jour en temps réel après modification
+• Corrections diverses

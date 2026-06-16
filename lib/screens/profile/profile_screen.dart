@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -40,7 +40,6 @@ class ProfileScreen extends StatelessWidget {
     if (confirm != true) return;
     if (!context.mounted) return;
 
-    // Re-authenticate required by Firebase before delete
     try {
       final user = FirebaseAuth.instance.currentUser!;
       await user.delete();
@@ -90,24 +89,19 @@ class ProfileScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             Center(
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 52,
-                    backgroundColor: const Color(0xFF1A1A2E),
-                    child: Text(
-                      (user?.displayName?.isNotEmpty == true
-                              ? user!.displayName![0]
-                              : '?')
-                          .toUpperCase(),
-                      style: const TextStyle(
-                          fontSize: 40,
-                          color: Color(0xFF00F5FF),
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+              child: CircleAvatar(
+                radius: 52,
+                backgroundColor: const Color(0xFF1A1A2E),
+                child: Text(
+                  (user?.displayName?.isNotEmpty == true
+                          ? user!.displayName![0]
+                          : '?')
+                      .toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 40,
+                      color: Color(0xFF00F5FF),
+                      fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 16),

@@ -15,26 +15,65 @@ class _PhoneScreenState extends State<PhoneScreen> {
   String _countryCode = '+33';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().addListener(_onAuthStateChange);
+    });
+  }
+
+  @override
   void dispose() {
+    // Remove listener safely
+    try {
+      context.read<AuthProvider>().removeListener(_onAuthStateChange);
+    } catch (_) {}
     _phoneCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _send() async {
-    final phone = '$_countryCode${_phoneCtrl.text.trim()}';
-    if (phone.length < 8) return;
-    final auth = context.read<AuthProvider>();
-    await auth.sendOtp(phone);
+  void _onAuthStateChange() {
     if (!mounted) return;
+    final auth = context.read<AuthProvider>();
     if (auth.state == AuthState.otpSent) {
+      final phone = '$_countryCode${_cleanPhone(_phoneCtrl.text)}';
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => OtpScreen(phone: phone)));
+        context,
+        MaterialPageRoute(builder: (_) => OtpScreen(phone: phone)),
+      );
     } else if (auth.state == AuthState.error) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error ?? 'Erreur')));
+        SnackBar(
+          content: Text(auth.error ?? 'Erreur lors de l\'envoi du code'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     }
+  }
+
+  String _cleanPhone(String input) {
+    // Remove all spaces
+    String digits = input.trim().replaceAll(RegExp(r'\s+'), '');
+    // Remove leading 0 (French numbers: 0612345678 -> 612345678)
+    if (digits.startsWith('0')) digits = digits.substring(1);
+    return digits;
+  }
+
+  Future<void> _send() async {
+    final cleaned = _cleanPhone(_phoneCtrl.text);
+    if (cleaned.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Entre ton numéro de téléphone'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    final phone = '$_countryCode$cleaned';
+    final auth = context.read<AuthProvider>();
+    await auth.sendOtp(phone);
   }
 
   @override
@@ -88,7 +127,8 @@ class _PhoneScreenState extends State<PhoneScreen> {
                     child: TextField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 18),
                       decoration: const InputDecoration(
                         hintText: '6 12 34 56 78',
                         hintStyle: TextStyle(color: Colors.white30),

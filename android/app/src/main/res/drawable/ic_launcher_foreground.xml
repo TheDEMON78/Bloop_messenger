@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer glow -->
+    <path
+        android:fillColor="#1A00F5FF"
+        android:pathData="M18,26 Q18,16 28,16 L80,16 Q90,16 90,26 L90,64 Q90,74 80,74 L62,74 L54,90 L46,74 L28,74 Q18,74 18,64 Z"/>
+
+    <!-- Bubble body -->
+    <path
+        android:fillColor="#FF010D20"
+        android:strokeColor="#FF00F5FF"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M22,28 Q22,20 30,20 L78,20 Q86,20 86,28 L86,62 Q86,70 78,70 L60,70 L54,84 L48,70 L30,70 Q22,70 22,62 Z"/>
+
+    <!-- Dot 1 -->
+    <path
+        android:fillColor="#FF00F5FF"
+        android:pathData="M38,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
+
+    <!-- Dot 2 -->
+    <path
+        android:fillColor="#BB00F5FF"
+        android:pathData="M54,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
+
+    <!-- Dot 3 -->
+    <path
+        android:fillColor="#5500F5FF"
+        android:pathData="M70,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
+
+</vector>

@@ -52,11 +52,14 @@ ThemeData _darkTheme() => ThemeData(
         backgroundColor: Color(0xFF0D0D16),
         indicatorColor: Color(0x2200F5FF),
       ),
-      dialogTheme: const DialogTheme(backgroundColor: Color(0xFF1A1A2E)),
+      dialogTheme: const DialogThemeData(
+          backgroundColor: Color(0xFF1A1A2E)),
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+        hintStyle:
+            TextStyle(color: Colors.white.withValues(alpha: 0.3)),
         labelStyle: const TextStyle(color: Color(0xFF00F5FF)),
-        counterStyle: TextStyle(color: Colors.white.withValues(alpha: 0.38)),
+        counterStyle:
+            TextStyle(color: Colors.white.withValues(alpha: 0.38)),
         enabledBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF00F5FF)),
         ),
@@ -92,7 +95,8 @@ ThemeData _lightTheme() => ThemeData(
         backgroundColor: Color(0xFFFFFFFF),
         indicatorColor: Color(0x220098A8),
       ),
-      dialogTheme: const DialogTheme(backgroundColor: Color(0xFFE4E8EF)),
+      dialogTheme: const DialogThemeData(
+          backgroundColor: Color(0xFFE4E8EF)),
       inputDecorationTheme: const InputDecorationTheme(
         hintStyle: TextStyle(color: Color(0xFFB0B8C8)),
         labelStyle: TextStyle(color: Color(0xFF0098A8)),

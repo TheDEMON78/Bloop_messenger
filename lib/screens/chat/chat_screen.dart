@@ -6,6 +6,8 @@ import '../../models/message_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/background_message_service.dart';
 import '../../services/block_service.dart';
 import '../../services/firestore_service.dart';
 import '../groups/group_settings_screen.dart';
@@ -34,14 +36,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    final chat = context.read<ChatProvider>();
-    chat.listenMessages(widget.conversation.id);
-    chat.setOpenConversation(widget.conversation.id);
+    context.read<ChatProvider>().listenMessages(widget.conversation.id);
+    SharedPreferences.getInstance().then(
+        (p) => p.setString(kPrefKeyOpenConv, widget.conversation.id));
   }
 
   @override
   void dispose() {
-    context.read<ChatProvider>().setOpenConversation(null);
+    SharedPreferences.getInstance()
+        .then((p) => p.remove(kPrefKeyOpenConv));
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();

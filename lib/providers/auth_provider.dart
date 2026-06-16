@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/background_message_service.dart';
 
 enum AuthState {
   initial,
@@ -30,8 +31,10 @@ class AuthProvider extends ChangeNotifier {
       _user = user;
       if (user != null && _state != AuthState.profileIncomplete) {
         _state = AuthState.authenticated;
+        notifyServiceUid(user.uid);
       } else if (user == null) {
         _state = AuthState.initial;
+        notifyServiceSignOut();
       }
       notifyListeners();
     });

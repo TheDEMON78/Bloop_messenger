@@ -8,10 +8,12 @@ import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/contacts_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/background_message_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initBackgroundService();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   runApp(

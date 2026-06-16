@@ -3,58 +3,21 @@ import 'package:flutter/material.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import '../services/firestore_service.dart';
-import '../services/notification_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final FirestoreService _db = FirestoreService();
-  final NotificationService _notif = NotificationService();
 
   List<ConversationModel> _conversations = [];
   List<MessageModel> _messages = [];
   StreamSubscription? _convSub;
   StreamSubscription? _msgSub;
 
-  String? _myUid;
-  String? _openConversationId;
-
   List<ConversationModel> get conversations => _conversations;
   List<MessageModel> get messages => _messages;
 
-  // Track which conversation is currently open so we don't notify for it
-  void setOpenConversation(String? conversationId) {
-    _openConversationId = conversationId;
-  }
-
   void listenConversations(String uid) {
-    _myUid = uid;
     _convSub?.cancel();
-    // Track previous last-message timestamps to detect new incoming messages
-    final Map<String, int> _lastSeenTime = {};
     _convSub = _db.conversationsStream(uid).listen((convs) {
-      for (final conv in convs) {
-        final prevTime = _lastSeenTime[conv.id];
-        final newTime = conv.lastMessageTime?.millisecondsSinceEpoch;
-        final senderId = conv.lastMessageSenderId;
-
-        if (newTime != null &&
-            prevTime != null &&
-            newTime > prevTime &&
-            senderId != null &&
-            senderId != uid &&
-            conv.id != _openConversationId) {
-          // New message from someone else in a conversation we're not viewing
-          final senderName = conv.participantNames[senderId];
-          final title = conv.isGroup
-              ? '${conv.groupName ?? "Groupe"} · ${senderName ?? "Bloop"}'
-              : senderName ?? 'Bloop';
-          _notif.showLocalNotification(
-            id: conv.id.hashCode,
-            title: title,
-            body: conv.lastMessage ?? '',
-          );
-        }
-        if (newTime != null) _lastSeenTime[conv.id] = newTime;
-      }
       _conversations = convs;
       notifyListeners();
     });

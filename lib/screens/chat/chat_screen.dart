@@ -34,11 +34,14 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatProvider>().listenMessages(widget.conversation.id);
+    final chat = context.read<ChatProvider>();
+    chat.listenMessages(widget.conversation.id);
+    chat.setOpenConversation(widget.conversation.id);
   }
 
   @override
   void dispose() {
+    context.read<ChatProvider>().setOpenConversation(null);
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();

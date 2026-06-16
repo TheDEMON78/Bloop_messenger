@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../services/firestore_service.dart';
 
@@ -19,6 +20,7 @@ class GroupSettingsScreen extends StatefulWidget {
 class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   late final TextEditingController _nameCtrl;
   bool _saving = false;
+  bool _leaving = false;
 
   bool get _isCreator => widget.conversation.creatorUid == widget.myUid;
 
@@ -304,8 +306,122 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   : null,
             );
           }),
+
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 8),
+
+          // Leave / Delete group
+          if (!_isCreator)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _leaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.orangeAccent))
+                  : const Icon(Icons.exit_to_app,
+                      color: Colors.orangeAccent),
+              title: const Text('Quitter le groupe',
+                  style: TextStyle(color: Colors.orangeAccent)),
+              onTap: _leaving ? null : _leaveGroup,
+            ),
+          if (_isCreator)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _leaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.redAccent))
+                  : const Icon(Icons.delete_forever,
+                      color: Colors.redAccent),
+              title: const Text('Supprimer le groupe',
+                  style: TextStyle(color: Colors.redAccent)),
+              onTap: _leaving ? null : _deleteGroup,
+            ),
         ],
       ),
     );
+  }
+
+  Future<void> _leaveGroup() async {
+    final cs = Theme.of(context).colorScheme;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Quitter le groupe ?',
+            style: TextStyle(color: cs.onSurface)),
+        content: Text(
+            'Tu ne pourras plus voir les messages de ce groupe.',
+            style:
+                TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Annuler',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.54))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Quitter',
+                style: TextStyle(
+                    color: Colors.orangeAccent,
+                    fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    setState(() => _leaving = true);
+    final myName = context.read<AuthProvider>().user?.displayName ?? '';
+    await context
+        .read<ChatProvider>()
+        .leaveGroup(widget.conversation.id, widget.myUid, myName);
+    if (mounted) {
+      // Pop settings screen + chat screen back to home
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  Future<void> _deleteGroup() async {
+    final cs = Theme.of(context).colorScheme;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Supprimer le groupe ?',
+            style: TextStyle(color: cs.onSurface)),
+        content: Text(
+            'Tous les messages seront supprimés définitivement pour tous les membres.',
+            style:
+                TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Annuler',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.54))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer',
+                style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    setState(() => _leaving = true);
+    await context
+        .read<ChatProvider>()
+        .deleteGroup(widget.conversation.id);
+    if (mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 }

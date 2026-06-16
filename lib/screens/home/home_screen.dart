@@ -97,8 +97,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _ConversationsTab extends StatelessWidget {
+class _ConversationsTab extends StatefulWidget {
   const _ConversationsTab();
+
+  @override
+  State<_ConversationsTab> createState() => _ConversationsTabState();
+}
+
+class _ConversationsTabState extends State<_ConversationsTab> {
+  DateTime? _lastRefresh;
+
+  Future<void> _onRefresh() async {
+    final now = DateTime.now();
+    if (_lastRefresh != null &&
+        now.difference(_lastRefresh!) < const Duration(minutes: 5)) {
+      final remaining = const Duration(minutes: 5) -
+          now.difference(_lastRefresh!);
+      final mins = remaining.inMinutes;
+      final secs = remaining.inSeconds % 60;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Actualisation disponible dans ${mins > 0 ? '${mins}m ' : ''}${secs}s'),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+      return;
+    }
+    final uid = context.read<AuthProvider>().user?.uid;
+    if (uid == null) return;
+    context.read<ChatProvider>().listenConversations(uid);
+    _lastRefresh = now;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,30 +137,44 @@ class _ConversationsTab extends StatelessWidget {
     final myUid = context.read<AuthProvider>().user?.uid ?? '';
 
     if (conversations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      return RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: cs.primary,
+        child: ListView(
           children: [
-            Icon(Icons.chat_bubble_outline,
-                size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
-            const SizedBox(height: 16),
-            Text('Aucune conversation',
-                style: TextStyle(
-                    color: cs.onSurface.withValues(alpha: 0.38))),
-            const SizedBox(height: 8),
-            Text('Ajoute un contact pour commencer',
-                style: TextStyle(
-                    color: cs.onSurface.withValues(alpha: 0.24),
-                    fontSize: 12)),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.chat_bubble_outline,
+                      size: 64,
+                      color: cs.onSurface.withValues(alpha: 0.24)),
+                  const SizedBox(height: 16),
+                  Text('Aucune conversation',
+                      style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.38))),
+                  const SizedBox(height: 8),
+                  Text('Ajoute un contact pour commencer',
+                      style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.24),
+                          fontSize: 12)),
+                ],
+              ),
+            ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
-      itemCount: conversations.length,
-      itemBuilder: (_, i) =>
-          _ConversationTile(conv: conversations[i], myUid: myUid),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: cs.primary,
+      child: ListView.builder(
+        itemCount: conversations.length,
+        itemBuilder: (_, i) =>
+            _ConversationTile(conv: conversations[i], myUid: myUid),
+      ),
     );
   }
 }

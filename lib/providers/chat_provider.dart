@@ -117,6 +117,12 @@ class ChatProvider extends ChangeNotifier {
         removeUids: removeUids,
       );
 
+  Future<void> leaveGroup(String conversationId, String uid, String displayName) =>
+      _db.leaveGroup(conversationId, uid, displayName);
+
+  Future<void> deleteGroup(String conversationId) =>
+      _db.deleteGroup(conversationId);
+
   @override
   void dispose() {
     _convSub?.cancel();

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloop Messenger — Suppression de compte et données</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #020210;
+      color: #ddd;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    header {
+      padding: 40px 0 32px;
+      border-bottom: 1px solid #1a1a2e;
+    }
+    h1 { color: #00F5FF; font-size: 28px; font-weight: 300; letter-spacing: 2px; }
+    h2 { color: #00F5FF; font-size: 18px; margin: 32px 0 12px; }
+    p { color: #aaa; line-height: 1.7; margin-bottom: 12px; }
+    ul { color: #aaa; line-height: 1.8; padding-left: 20px; margin-bottom: 12px; }
+    .card {
+      background: #0d0d1f;
+      border: 1px solid #1a1a2e;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    .card.danger { border-color: #ff4444; }
+    .tag {
+      display: inline-block;
+      background: #00F5FF22;
+      color: #00F5FF;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .tag.red { background: #ff444422; color: #ff6666; }
+    a { color: #00F5FF; }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #1a1a2e; color: #555; font-size: 13px; }
+    code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #00F5FF; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bloop Messenger</h1>
+    <p style="margin-top:8px; color:#555;">Bloop Studio &mdash; Politique de suppression</p>
+  </header>
+
+  <section id="delete-account">
+    <h2>Supprimer mon compte</h2>
+    <div class="card danger">
+      <span class="tag red">Irréversible</span>
+      <p>La suppression de votre compte entraîne la suppression définitive de&nbsp;:</p>
+      <ul>
+        <li>Votre profil (nom, statut, photo)</li>
+        <li>Votre numéro de téléphone associé</li>
+        <li>Vos conversations et messages</li>
+        <li>Votre liste de contacts</li>
+      </ul>
+      <p style="margin-top:12px;">Cette action est <strong style="color:#ff6666">irréversible</strong>. Vos données sont supprimées dans un délai de <strong>30 jours</strong>.</p>
+    </div>
+
+    <div class="card">
+      <span class="tag">Comment faire</span>
+      <p><strong>Option 1 — Depuis l’application</strong> (recommandé)</p>
+      <ul>
+        <li>Ouvre Bloop Messenger</li>
+        <li>Va dans <strong>Profil</strong> (onglet du bas)</li>
+        <li>Appuie sur <strong>&laquo;&nbsp;Supprimer mon compte&nbsp;&raquo;</strong></li>
+        <li>Confirme la suppression</li>
+      </ul>
+      <p style="margin-top:16px;"><strong>Option 2 — Par e-mail</strong></p>
+      <p>Envoie une demande à <a href="mailto:bloop.myds.me@gmail.com">bloop.myds.me@gmail.com</a> depuis l’adresse associée à ton compte, en indiquant ton numéro de téléphone. Traitement sous <strong>7 jours ouvrables</strong>.</p>
+    </div>
+  </section>
+
+  <section id="delete-data">
+    <h2>Supprimer mes données uniquement</h2>
+    <div class="card">
+      <span class="tag">Données concernées</span>
+      <p>Tu peux demander la suppression de certaines données sans supprimer ton compte&nbsp;:</p>
+      <ul>
+        <li><strong>Messages</strong> — suppression conversation par conversation depuis l’app</li>
+        <li><strong>Contacts</strong> — supprimables depuis l’onglet Contacts</li>
+        <li><strong>Photo de profil</strong> — modifiable depuis le profil</li>
+      </ul>
+      <p style="margin-top:12px;">Pour une suppression complète des données sans fermer le compte, contacte <a href="mailto:bloop.myds.me@gmail.com">bloop.myds.me@gmail.com</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Données conservées après suppression</h2>
+    <div class="card">
+      <ul>
+        <li>Aucune donnée personnelle n’est conservée après suppression du compte</li>
+        <li>Les signalements soumis sont conservés 90 jours pour des raisons de sécurité</li>
+        <li>Les logs Firebase sont supprimés conformément à la <a href="https://firebase.google.com/support/privacy" target="_blank">politique Firebase</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Bloop Studio &mdash; <a href="mailto:bloop.myds.me@gmail.com">bloop.myds.me@gmail.com</a></p>
+    <p style="margin-top:6px;">Package Android&nbsp;: <code>com.bloop.messenger</code></p>
+  </footer>
+</body>
+</html>

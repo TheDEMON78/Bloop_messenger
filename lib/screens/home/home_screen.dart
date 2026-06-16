@@ -4,11 +4,11 @@ import '../../models/conversation_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/contacts_provider.dart';
-import '../auth/phone_screen.dart';
 import '../chat/chat_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../contacts/add_contact_screen.dart';
 import '../groups/create_group_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,10 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final titles = ['Messages', 'Contacts', 'Profil'];
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _tab == 0 ? 'Messages' : 'Contacts',
+          titles[_tab],
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -57,26 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(
                       builder: (_) => const AddContactScreen())),
             ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                  value: 'logout',
-                  child: Text('Se déconnecter')),
-            ],
-            onSelected: (v) async {
-              if (v == 'logout') {
-                await context.read<AuthProvider>().signOut();
-                if (!mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const PhoneScreen()),
-                  (_) => false,
-                );
-              }
-            },
-          ),
         ],
       ),
       body: IndexedStack(
@@ -84,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: const [
           _ConversationsTab(),
           ContactsScreen(),
+          ProfileScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -99,6 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.contacts_outlined),
             selectedIcon: Icon(Icons.contacts),
             label: 'Contacts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profil',
           ),
         ],
       ),
@@ -148,13 +135,10 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final otherId = conv.isGroup
-        ? null
-        : conv.participants.firstWhere((p) => p != myUid,
-            orElse: () => '');
     final title = conv.isGroup
         ? (conv.groupName ?? 'Groupe')
-        : (otherId ?? '');
+        : conv.participants
+            .firstWhere((p) => p != myUid, orElse: () => '');
     final unread = conv.unreadCount[myUid] ?? 0;
 
     return ListTile(

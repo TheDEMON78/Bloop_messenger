@@ -9,6 +9,10 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _uuid = const Uuid();
 
+  Future<void> saveFcmToken(String uid, String token) async {
+    await _db.collection('users').doc(uid).update({'fcmToken': token});
+  }
+
   Stream<UserModel?> userStream(String uid) => _db
       .collection('users')
       .doc(uid)

@@ -11,6 +11,7 @@ import '../contacts/contacts_screen.dart';
 import '../contacts/add_contact_screen.dart';
 import '../groups/create_group_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (uid != null) {
       context.read<ChatProvider>().listenConversations(uid);
       context.read<ContactsProvider>().listenContacts(uid);
+      NotificationService().init(uid);
     }
   }
 

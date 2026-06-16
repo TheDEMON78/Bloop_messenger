@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/conversation_model.dart';
 import '../../models/message_model.dart';
+import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../services/block_service.dart';
+import '../../services/firestore_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final ConversationModel conversation;
@@ -71,13 +73,13 @@ class _ChatScreenState extends State<ChatScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(action,
-            style: TextStyle(color: cs.onSurface)),
+        title: Text(action, style: TextStyle(color: cs.onSurface)),
         content: Text(
           isCurrentlyBlocked
               ? 'Débloquer cet utilisateur ?'
               : 'Bloquer cet utilisateur ? Il ne pourra plus vous envoyer de messages.',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+          style:
+              TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
@@ -118,13 +120,11 @@ class _ChatScreenState extends State<ChatScreen> {
       'Usurpation d\'identité',
       'Autre',
     ];
-
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: Text('Signaler',
-              style: TextStyle(color: cs.onSurface)),
+          title: Text('Signaler', style: TextStyle(color: cs.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -136,8 +136,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     value: r,
                     groupValue: selectedReason,
                     onChanged: (v) => setS(() => selectedReason = v),
-                    title: Text(r,
-                        style: TextStyle(color: cs.onSurface)),
+                    title:
+                        Text(r, style: TextStyle(color: cs.onSurface)),
                     activeColor: cs.primary,
                     dense: true,
                   )),
@@ -163,7 +163,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
-
     if (confirm == true && selectedReason != null && mounted) {
       await _blockService.reportUser(
         reporterUid: widget.myUid,
@@ -173,22 +172,36 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signalement envoyé. Merci.'),
-          ),
-        );
+            const SnackBar(content: Text('Signalement envoyé. Merci.')));
       }
     }
+  }
+
+  Widget _buildTitle(ColorScheme cs) {
+    if (widget.conversation.isGroup) {
+      return Text(widget.conversation.groupName ?? 'Groupe',
+          style:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold));
+    }
+    // For direct chats: stream the other user's display name from Firestore
+    final stored = widget.conversation.participantNames[_otherUid];
+    return StreamBuilder<UserModel?>(
+      stream: FirestoreService().userStream(_otherUid),
+      builder: (_, snap) {
+        final name = snap.data?.displayName
+            ?? stored
+            ?? '...';
+        return Text(name,
+            style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final title = widget.conversation.isGroup
-        ? (widget.conversation.groupName ?? 'Groupe')
-        : widget.conversation.participants
-            .firstWhere((p) => p != widget.myUid, orElse: () => 'Chat');
-
     final messages = context.watch<ChatProvider>().messages;
     final isDirectChat =
         !widget.conversation.isGroup && _otherUid.isNotEmpty;
@@ -208,20 +221,14 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            Expanded(child: _buildTitle(cs)),
           ],
         ),
         actions: [
           if (isDirectChat)
             StreamBuilder<bool>(
-              stream: _blockService.isBlockedStream(widget.myUid, _otherUid),
+              stream:
+                  _blockService.isBlockedStream(widget.myUid, _otherUid),
               builder: (_, snap) {
                 final isBlocked = snap.data ?? false;
                 return PopupMenuButton<String>(
@@ -230,38 +237,30 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemBuilder: (_) => [
                     PopupMenuItem(
                       value: 'block',
-                      child: Row(
-                        children: [
-                          Icon(
+                      child: Row(children: [
+                        Icon(
                             isBlocked ? Icons.lock_open : Icons.block,
                             color: isBlocked
                                 ? cs.primary
                                 : Colors.redAccent,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isBlocked ? 'Débloquer' : 'Bloquer',
+                            size: 18),
+                        const SizedBox(width: 8),
+                        Text(isBlocked ? 'Débloquer' : 'Bloquer',
                             style: TextStyle(
                                 color: isBlocked
                                     ? cs.primary
-                                    : Colors.redAccent),
-                          ),
-                        ],
-                      ),
+                                    : Colors.redAccent)),
+                      ]),
                     ),
                     PopupMenuItem(
                       value: 'report',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.flag_outlined,
-                              color: Colors.orangeAccent, size: 18),
-                          const SizedBox(width: 8),
-                          Text('Signaler',
-                              style: TextStyle(
-                                  color: cs.onSurface)),
-                        ],
-                      ),
+                      child: Row(children: [
+                        const Icon(Icons.flag_outlined,
+                            color: Colors.orangeAccent, size: 18),
+                        const SizedBox(width: 8),
+                        Text('Signaler',
+                            style: TextStyle(color: cs.onSurface)),
+                      ]),
                     ),
                   ],
                   onSelected: (v) {
@@ -340,11 +339,10 @@ class _MessagesList extends StatelessWidget {
   final String myUid;
   final ScrollController scrollCtrl;
 
-  const _MessagesList({
-    required this.messages,
-    required this.myUid,
-    required this.scrollCtrl,
-  });
+  const _MessagesList(
+      {required this.messages,
+      required this.myUid,
+      required this.scrollCtrl});
 
   @override
   Widget build(BuildContext context) {
@@ -397,16 +395,13 @@ class _MessageBubble extends StatelessWidget {
           ),
         ),
         child: Column(
-          crossAxisAlignment: isMe
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            Text(
-              message.content,
-              style: TextStyle(
-                  color: isMe ? cs.onPrimary : cs.onSurface,
-                  fontSize: 15),
-            ),
+            Text(message.content,
+                style: TextStyle(
+                    color: isMe ? cs.onPrimary : cs.onSurface,
+                    fontSize: 15)),
             const SizedBox(height: 2),
             Text(
               DateFormat('HH:mm').format(message.timestamp),
@@ -448,8 +443,8 @@ class _InputBar extends StatelessWidget {
               onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
                 hintText: 'Message...',
-                hintStyle:
-                    TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
+                hintStyle: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.38)),
                 filled: true,
                 fillColor: cs.surfaceContainer,
                 border: OutlineInputBorder(
@@ -475,7 +470,8 @@ class _InputBar extends StatelessWidget {
             child: CircleAvatar(
               radius: 22,
               backgroundColor: cs.primary,
-              child: Icon(Icons.send, color: cs.onPrimary, size: 20),
+              child:
+                  Icon(Icons.send, color: cs.onPrimary, size: 20),
             ),
           ),
         ],

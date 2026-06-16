@@ -15,6 +15,12 @@ class FirestoreService {
       .snapshots()
       .map((s) => s.exists ? UserModel.fromMap(s.data()!) : null);
 
+  Future<UserModel?> getUser(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    if (!doc.exists) return null;
+    return UserModel.fromMap(doc.data()!);
+  }
+
   Future<UserModel?> getUserByPhone(String phone) async {
     final q = await _db
         .collection('users')
@@ -38,8 +44,6 @@ class FirestoreService {
 
   Future<void> deleteUserData(String uid) async {
     final batch = _db.batch();
-
-    // Delete contacts sub-collection
     final contacts = await _db
         .collection('users')
         .doc(uid)
@@ -48,8 +52,6 @@ class FirestoreService {
     for (final doc in contacts.docs) {
       batch.delete(doc.reference);
     }
-
-    // Delete blocked sub-collection
     final blocked = await _db
         .collection('users')
         .doc(uid)
@@ -58,10 +60,7 @@ class FirestoreService {
     for (final doc in blocked.docs) {
       batch.delete(doc.reference);
     }
-
-    // Delete user document
     batch.delete(_db.collection('users').doc(uid));
-
     await batch.commit();
   }
 
@@ -79,7 +78,8 @@ class FirestoreService {
       .doc(uid)
       .collection('contacts')
       .snapshots()
-      .map((s) => s.docs.map((d) => ContactModel.fromMap(d.data())).toList());
+      .map((s) =>
+          s.docs.map((d) => ContactModel.fromMap(d.data())).toList());
 
   Stream<List<ConversationModel>> conversationsStream(String uid) => _db
       .collection('conversations')
@@ -87,7 +87,8 @@ class FirestoreService {
       .orderBy('lastMessageTime', descending: true)
       .snapshots()
       .map((s) => s.docs
-          .map((d) => ConversationModel.fromMap({...d.data(), 'id': d.id}))
+          .map((d) =>
+              ConversationModel.fromMap({...d.data(), 'id': d.id}))
           .toList());
 
   Future<ConversationModel> getOrCreateConversation(
@@ -102,14 +103,37 @@ class FirestoreService {
       final participants =
           List<String>.from(doc.data()['participants'] as List);
       if (participants.contains(uid2)) {
-        return ConversationModel.fromMap({...doc.data(), 'id': doc.id});
+        // Update participantNames if missing
+        final existing =
+            ConversationModel.fromMap({...doc.data(), 'id': doc.id});
+        if (existing.participantNames.isEmpty) {
+          final u1 = await getUser(uid1);
+          final u2 = await getUser(uid2);
+          final names = {
+            uid1: u1?.displayName ?? '',
+            uid2: u2?.displayName ?? '',
+          };
+          await doc.reference.update({'participantNames': names});
+          return ConversationModel.fromMap(
+              {...doc.data(), 'id': doc.id, 'participantNames': names});
+        }
+        return existing;
       }
     }
+
+    // Create new conversation with participant names
+    final u1 = await getUser(uid1);
+    final u2 = await getUser(uid2);
+    final names = {
+      uid1: u1?.displayName ?? '',
+      uid2: u2?.displayName ?? '',
+    };
 
     final docRef = _db.collection('conversations').doc();
     final conv = ConversationModel(
       id: docRef.id,
       participants: [uid1, uid2],
+      participantNames: names,
       isGroup: false,
     );
     await docRef.set(conv.toMap());
@@ -140,7 +164,8 @@ class FirestoreService {
       .collection('messages')
       .orderBy('timestamp')
       .snapshots()
-      .map((s) => s.docs.map((d) => MessageModel.fromMap(d.data())).toList());
+      .map((s) =>
+          s.docs.map((d) => MessageModel.fromMap(d.data())).toList());
 
   Future<void> sendMessage({
     required String conversationId,

@@ -4,6 +4,8 @@ import '../../models/conversation_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/contacts_provider.dart';
+import '../../services/firestore_service.dart';
+import '../../models/user_model.dart';
 import '../chat/chat_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../contacts/add_contact_screen.dart';
@@ -36,17 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          titles[_tab],
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(titles[_tab],
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           if (_tab == 0)
             IconButton(
               icon: const Icon(Icons.group_add),
               tooltip: 'Créer un groupe',
-              onPressed: () => Navigator.push(
-                  context,
+              onPressed: () => Navigator.push(context,
                   MaterialPageRoute(
                       builder: (_) => const CreateGroupScreen())),
             ),
@@ -54,8 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
               icon: const Icon(Icons.person_add),
               tooltip: 'Ajouter un contact',
-              onPressed: () => Navigator.push(
-                  context,
+              onPressed: () => Navigator.push(context,
                   MaterialPageRoute(
                       builder: (_) => const AddContactScreen())),
             ),
@@ -74,17 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: [
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline, color: cs.onSurface.withValues(alpha: 0.6)),
+            icon: Icon(Icons.chat_bubble_outline,
+                color: cs.onSurface.withValues(alpha: 0.6)),
             selectedIcon: Icon(Icons.chat_bubble, color: cs.primary),
             label: 'Messages',
           ),
           NavigationDestination(
-            icon: Icon(Icons.contacts_outlined, color: cs.onSurface.withValues(alpha: 0.6)),
+            icon: Icon(Icons.contacts_outlined,
+                color: cs.onSurface.withValues(alpha: 0.6)),
             selectedIcon: Icon(Icons.contacts, color: cs.primary),
             label: 'Contacts',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline, color: cs.onSurface.withValues(alpha: 0.6)),
+            icon: Icon(Icons.person_outline,
+                color: cs.onSurface.withValues(alpha: 0.6)),
             selectedIcon: Icon(Icons.person, color: cs.primary),
             label: 'Profil',
           ),
@@ -138,13 +139,25 @@ class _ConversationTile extends StatelessWidget {
 
   const _ConversationTile({required this.conv, required this.myUid});
 
+  String _resolveTitle(BuildContext context) {
+    if (conv.isGroup) return conv.groupName ?? 'Groupe';
+    final otherUid = conv.participants
+        .firstWhere((p) => p != myUid, orElse: () => '');
+    if (otherUid.isEmpty) return 'Chat';
+    // 1. Check stored participant names
+    final stored = conv.participantNames[otherUid];
+    if (stored != null && stored.isNotEmpty) return stored;
+    // 2. Check contacts list
+    final contacts = context.read<ContactsProvider>().contacts;
+    final contact =
+        contacts.where((c) => c.uid == otherUid).firstOrNull;
+    return contact?.displayName ?? 'Utilisateur';
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final title = conv.isGroup
-        ? (conv.groupName ?? 'Groupe')
-        : conv.participants
-            .firstWhere((p) => p != myUid, orElse: () => '');
+    final title = _resolveTitle(context);
     final unread = conv.unreadCount[myUid] ?? 0;
 
     return ListTile(
@@ -160,7 +173,8 @@ class _ConversationTile extends StatelessWidget {
               color: cs.onSurface, fontWeight: FontWeight.w600)),
       subtitle: Text(
         conv.lastMessage ?? '',
-        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
+        style:
+            TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -168,13 +182,11 @@ class _ConversationTile extends StatelessWidget {
           ? CircleAvatar(
               radius: 10,
               backgroundColor: cs.primary,
-              child: Text(
-                '$unread',
-                style: TextStyle(
-                    color: cs.onPrimary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold),
-              ),
+              child: Text('$unread',
+                  style: TextStyle(
+                      color: cs.onPrimary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             )
           : null,
       onTap: () => Navigator.push(

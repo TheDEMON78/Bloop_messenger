@@ -1,4 +1,5 @@
-• Première version de Bloop Messenger
-• Compte lié au numéro de téléphone
-• Discussions privées et groupes
-• Gestion des contacts
+• Mode sombre et mode clair selon le réglage du téléphone
+• Profil modifiable (nom, statut)
+• Correction de l'écran téléphone et de l'authentification OTP
+• Blocage et signalement d'utilisateurs
+• Suppression de compte depuis l'application

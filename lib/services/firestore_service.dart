@@ -9,6 +9,12 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _uuid = const Uuid();
 
+  Stream<String?> groupNameStream(String conversationId) => _db
+      .collection('conversations')
+      .doc(conversationId)
+      .snapshots()
+      .map((s) => s.data()?['groupName'] as String?);
+
   Stream<UserModel?> userStream(String uid) => _db
       .collection('users')
       .doc(uid)

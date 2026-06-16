@@ -183,9 +183,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildTitle(ColorScheme cs) {
     if (widget.conversation.isGroup) {
-      return Text(widget.conversation.groupName ?? 'Groupe',
-          style:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold));
+      return StreamBuilder<String?>(
+        stream: FirestoreService().groupNameStream(widget.conversation.id),
+        builder: (_, snap) {
+          final name = snap.data ?? widget.conversation.groupName ?? 'Groupe';
+          return Text(name,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis);
+        },
+      );
     }
     // For direct chats: stream the other user's display name from Firestore
     final stored = widget.conversation.participantNames[_otherUid];

@@ -66,31 +66,32 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _showBlockDialog(bool isCurrentlyBlocked) async {
+    final cs = Theme.of(context).colorScheme;
     final action = isCurrentlyBlocked ? 'Débloquer' : 'Bloquer';
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
         title: Text(action,
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: cs.onSurface)),
         content: Text(
           isCurrentlyBlocked
               ? 'Débloquer cet utilisateur ?'
               : 'Bloquer cet utilisateur ? Il ne pourra plus vous envoyer de messages.',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Annuler',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.54))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(action,
                 style: TextStyle(
                     color: isCurrentlyBlocked
-                        ? const Color(0xFF00F5FF)
+                        ? cs.primary
                         : Colors.redAccent,
                     fontWeight: FontWeight.bold)),
           ),
@@ -108,6 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _showReportDialog() async {
+    final cs = Theme.of(context).colorScheme;
     String? selectedReason;
     final reasons = [
       'Spam',
@@ -121,22 +123,22 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          title: const Text('Signaler',
-              style: TextStyle(color: Colors.white)),
+          title: Text('Signaler',
+              style: TextStyle(color: cs.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Raison du signalement :',
-                  style: TextStyle(color: Colors.white70)),
+              Text('Raison du signalement :',
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.7))),
               const SizedBox(height: 12),
               ...reasons.map((r) => RadioListTile<String>(
                     value: r,
                     groupValue: selectedReason,
                     onChanged: (v) => setS(() => selectedReason = v),
                     title: Text(r,
-                        style: const TextStyle(color: Colors.white)),
-                    activeColor: const Color(0xFF00F5FF),
+                        style: TextStyle(color: cs.onSurface)),
+                    activeColor: cs.primary,
                     dense: true,
                   )),
             ],
@@ -144,8 +146,9 @@ class _ChatScreenState extends State<ChatScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Annuler',
-                  style: TextStyle(color: Colors.white54)),
+              child: Text('Annuler',
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.54))),
             ),
             TextButton(
               onPressed: selectedReason == null
@@ -172,7 +175,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Signalement envoyé. Merci.'),
-            backgroundColor: Color(0xFF1A1A2E),
           ),
         );
       }
@@ -181,6 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final title = widget.conversation.isGroup
         ? (widget.conversation.groupName ?? 'Groupe')
         : widget.conversation.participants
@@ -197,10 +200,10 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: const Color(0xFF1A1A2E),
+              backgroundColor: cs.surfaceContainerHigh,
               child: Icon(
                 widget.conversation.isGroup ? Icons.group : Icons.person,
-                color: const Color(0xFF00F5FF),
+                color: cs.primary,
                 size: 18,
               ),
             ),
@@ -223,18 +226,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 final isBlocked = snap.data ?? false;
                 return PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
-                  color: const Color(0xFF1A1A2E),
+                  color: cs.surfaceContainerHigh,
                   itemBuilder: (_) => [
                     PopupMenuItem(
                       value: 'block',
                       child: Row(
                         children: [
                           Icon(
-                            isBlocked
-                                ? Icons.lock_open
-                                : Icons.block,
+                            isBlocked ? Icons.lock_open : Icons.block,
                             color: isBlocked
-                                ? const Color(0xFF00F5FF)
+                                ? cs.primary
                                 : Colors.redAccent,
                             size: 18,
                           ),
@@ -243,22 +244,22 @@ class _ChatScreenState extends State<ChatScreen> {
                             isBlocked ? 'Débloquer' : 'Bloquer',
                             style: TextStyle(
                                 color: isBlocked
-                                    ? const Color(0xFF00F5FF)
+                                    ? cs.primary
                                     : Colors.redAccent),
                           ),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'report',
                       child: Row(
                         children: [
-                          Icon(Icons.flag_outlined,
+                          const Icon(Icons.flag_outlined,
                               color: Colors.orangeAccent, size: 18),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text('Signaler',
-                              style:
-                                  TextStyle(color: Colors.orangeAccent)),
+                              style: TextStyle(
+                                  color: cs.onSurface)),
                         ],
                       ),
                     ),
@@ -301,15 +302,19 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             TextButton(
                               onPressed: () => _showBlockDialog(true),
-                              child: const Text('Débloquer',
+                              child: Text('Débloquer',
                                   style: TextStyle(
-                                      color: Color(0xFF00F5FF),
+                                      color: cs.primary,
                                       fontSize: 12)),
                             ),
                           ],
                         ),
                       ),
-                    Expanded(child: _MessagesList(messages: messages, myUid: widget.myUid, scrollCtrl: _scrollCtrl)),
+                    Expanded(
+                        child: _MessagesList(
+                            messages: messages,
+                            myUid: widget.myUid,
+                            scrollCtrl: _scrollCtrl)),
                     if (!isBlocked)
                       _InputBar(controller: _msgCtrl, onSend: _send),
                   ],
@@ -318,7 +323,11 @@ class _ChatScreenState extends State<ChatScreen> {
             )
           : Column(
               children: [
-                Expanded(child: _MessagesList(messages: messages, myUid: widget.myUid, scrollCtrl: _scrollCtrl)),
+                Expanded(
+                    child: _MessagesList(
+                        messages: messages,
+                        myUid: widget.myUid,
+                        scrollCtrl: _scrollCtrl)),
                 _InputBar(controller: _msgCtrl, onSend: _send),
               ],
             ),
@@ -339,10 +348,12 @@ class _MessagesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     if (messages.isEmpty) {
-      return const Center(
+      return Center(
           child: Text('Dis bonjour 👋',
-              style: TextStyle(color: Colors.white38)));
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.38))));
     }
     return ListView.builder(
       controller: scrollCtrl,
@@ -366,6 +377,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Align(
       alignment:
           isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -376,9 +388,7 @@ class _MessageBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isMe
-              ? const Color(0xFF00B8CC)
-              : const Color(0xFF1E1E2E),
+          color: isMe ? cs.primary : cs.surfaceContainer,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -394,14 +404,16 @@ class _MessageBubble extends StatelessWidget {
             Text(
               message.content,
               style: TextStyle(
-                  color: isMe ? Colors.black : Colors.white,
+                  color: isMe ? cs.onPrimary : cs.onSurface,
                   fontSize: 15),
             ),
             const SizedBox(height: 2),
             Text(
               DateFormat('HH:mm').format(message.timestamp),
               style: TextStyle(
-                color: isMe ? Colors.black54 : Colors.white38,
+                color: isMe
+                    ? cs.onPrimary.withValues(alpha: 0.6)
+                    : cs.onSurface.withValues(alpha: 0.38),
                 fontSize: 11,
               ),
             ),
@@ -420,8 +432,9 @@ class _InputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: const Color(0xFF0D0D16),
+      color: cs.surface,
       padding:
           const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -429,17 +442,25 @@ class _InputBar extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: cs.onSurface),
               maxLines: null,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
                 hintText: 'Message...',
                 hintStyle:
-                    const TextStyle(color: Colors.white38),
+                    TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
                 filled: true,
-                fillColor: const Color(0xFF1E1E2E),
+                fillColor: cs.surfaceContainer,
                 border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
@@ -451,10 +472,10 @@ class _InputBar extends StatelessWidget {
           const SizedBox(width: 8),
           GestureDetector(
             onTap: onSend,
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 22,
-              backgroundColor: Color(0xFF00F5FF),
-              child: Icon(Icons.send, color: Colors.black, size: 20),
+              backgroundColor: cs.primary,
+              child: Icon(Icons.send, color: cs.onPrimary, size: 20),
             ),
           ),
         ],

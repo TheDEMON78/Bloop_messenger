@@ -63,6 +63,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Ajouter un contact')),
       body: Padding(
@@ -70,8 +71,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Rechercher par numéro de téléphone',
-                style: TextStyle(color: Colors.white70)),
+            Text('Rechercher par numéro de téléphone',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.7))),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -79,19 +81,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
                   child: TextField(
                     controller: _phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    style:
-                        const TextStyle(color: Colors.white),
+                    style: TextStyle(color: cs.onSurface),
                     decoration: const InputDecoration(
                       hintText: '+33612345678',
-                      hintStyle:
-                          TextStyle(color: Colors.white30),
-                      enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Color(0xFF00F5FF))),
-                      focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Color(0xFF00F5FF),
-                              width: 2)),
                     ),
                   ),
                 ),
@@ -99,15 +91,14 @@ class _AddContactScreenState extends State<AddContactScreen> {
                 ElevatedButton(
                   onPressed: _searching ? null : _search,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00F5FF),
-                      foregroundColor: Colors.black),
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.onPrimary),
                   child: _searching
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 16,
                           width: 16,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.black))
+                              strokeWidth: 2, color: cs.onPrimary))
                       : const Text('Chercher'),
                 ),
               ],
@@ -115,27 +106,26 @@ class _AddContactScreenState extends State<AddContactScreen> {
             const SizedBox(height: 24),
             if (_notFound != null)
               Text(_notFound!,
-                  style:
-                      const TextStyle(color: Colors.redAccent)),
-            if (_foundName != null) ...[  
+                  style: const TextStyle(color: Colors.redAccent)),
+            if (_foundName != null) ...[
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF1A1A2E),
+                  backgroundColor: cs.surfaceContainerHigh,
                   child: Text(
                     _foundName![0].toUpperCase(),
-                    style: const TextStyle(
-                        color: Color(0xFF00F5FF),
+                    style: TextStyle(
+                        color: cs.primary,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
                 title: Text(_foundName!,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: cs.onSurface,
                         fontWeight: FontWeight.w600)),
                 subtitle: Text(_phoneCtrl.text.trim(),
-                    style:
-                        const TextStyle(color: Colors.white38)),
+                    style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.38))),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -143,16 +133,16 @@ class _AddContactScreenState extends State<AddContactScreen> {
                 child: ElevatedButton(
                   onPressed: _add,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00F5FF),
-                    foregroundColor: Colors.black,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
                     padding:
                         const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Ajouter le contact',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

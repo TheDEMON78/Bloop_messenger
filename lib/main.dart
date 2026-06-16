@@ -26,6 +26,86 @@ void main() async {
   );
 }
 
+ThemeData _darkTheme() => ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFF00F5FF),
+        onPrimary: Colors.black,
+        secondary: Color(0xFF00C4D4),
+        onSecondary: Colors.black,
+        surface: Color(0xFF0D0D16),
+        onSurface: Colors.white,
+        surfaceContainer: Color(0xFF1E1E2E),
+        surfaceContainerHigh: Color(0xFF1A1A2E),
+        outline: Color(0xFF3D3D55),
+        error: Colors.redAccent,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF0D0D16),
+        foregroundColor: Color(0xFF00F5FF),
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Color(0xFF0D0D16),
+        indicatorColor: Color(0x2200F5FF),
+      ),
+      dialogTheme: const DialogTheme(backgroundColor: Color(0xFF1A1A2E)),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+        labelStyle: const TextStyle(color: Color(0xFF00F5FF)),
+        counterStyle: TextStyle(color: Colors.white.withValues(alpha: 0.38)),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF00F5FF)),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF00F5FF), width: 2),
+        ),
+      ),
+    );
+
+ThemeData _lightTheme() => ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
+        primary: Color(0xFF0098A8),
+        onPrimary: Colors.white,
+        secondary: Color(0xFF007A87),
+        onSecondary: Colors.white,
+        surface: Color(0xFFFFFFFF),
+        onSurface: Color(0xFF1A1A2A),
+        surfaceContainer: Color(0xFFEEF1F6),
+        surfaceContainerHigh: Color(0xFFE4E8EF),
+        outline: Color(0xFFB0B8C8),
+        error: Colors.redAccent,
+      ),
+      scaffoldBackgroundColor: const Color(0xFFF4F6F9),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFFFFFFFF),
+        foregroundColor: Color(0xFF0098A8),
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Color(0xFFFFFFFF),
+        indicatorColor: Color(0x220098A8),
+      ),
+      dialogTheme: const DialogTheme(backgroundColor: Color(0xFFE4E8EF)),
+      inputDecorationTheme: const InputDecorationTheme(
+        hintStyle: TextStyle(color: Color(0xFFB0B8C8)),
+        labelStyle: TextStyle(color: Color(0xFF0098A8)),
+        counterStyle: TextStyle(color: Color(0xFFB0B8C8)),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF0098A8)),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF0098A8), width: 2),
+        ),
+      ),
+    );
+
 class BloopMessengerApp extends StatelessWidget {
   const BloopMessengerApp({super.key});
 
@@ -34,6 +114,9 @@ class BloopMessengerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bloop',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: _lightTheme(),
+      darkTheme: _darkTheme(),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -43,23 +126,6 @@ class BloopMessengerApp extends StatelessWidget {
         Locale('fr'),
         Locale('en'),
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00F5FF),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0D0D16),
-          foregroundColor: Color(0xFF00F5FF),
-          elevation: 0,
-        ),
-        navigationBarTheme: const NavigationBarThemeData(
-          backgroundColor: Color(0xFF0D0D16),
-          indicatorColor: Color(0x2200F5FF),
-        ),
-      ),
       home: const SplashScreen(),
     );
   }

@@ -27,7 +27,10 @@ class _OtpScreenState extends State<OtpScreen> {
     if (!mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error ?? 'Code invalide')));
+          SnackBar(
+            content: Text(auth.error ?? 'Code invalide'),
+            backgroundColor: Colors.redAccent,
+          ));
       return;
     }
     if (auth.state == AuthState.profileIncomplete) {
@@ -46,6 +49,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final auth = context.watch<AuthProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text('Vérification')),
@@ -58,8 +62,9 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 32),
               Text(
                 'Code envoyé au\n${widget.phone}',
-                style:
-                    const TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.7),
+                    fontSize: 16),
               ),
               const SizedBox(height: 48),
               TextField(
@@ -67,23 +72,17 @@ class _OtpScreenState extends State<OtpScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 32,
                     letterSpacing: 12),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   counterText: '',
                   hintText: '------',
                   hintStyle: TextStyle(
-                      color: Colors.white24,
+                      color: cs.onSurface.withValues(alpha: 0.24),
                       fontSize: 32,
                       letterSpacing: 12),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFF00F5FF))),
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Color(0xFF00F5FF), width: 2)),
                 ),
               ),
               const SizedBox(height: 48),
@@ -93,18 +92,18 @@ class _OtpScreenState extends State<OtpScreen> {
                   onPressed:
                       auth.state == AuthState.loading ? null : _verify,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00F5FF),
-                    foregroundColor: Colors.black,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: auth.state == AuthState.loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.black))
+                              strokeWidth: 2, color: cs.onPrimary))
                       : const Text('Vérifier',
                           style: TextStyle(
                               fontSize: 16,

@@ -10,21 +10,26 @@ class ContactsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final contacts = context.watch<ContactsProvider>().contacts;
     final myUid = context.read<AuthProvider>().user?.uid ?? '';
 
     if (contacts.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.people_outline, size: 64, color: Colors.white24),
-            SizedBox(height: 16),
+            Icon(Icons.people_outline,
+                size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
+            const SizedBox(height: 16),
             Text('Aucun contact',
-                style: TextStyle(color: Colors.white38)),
-            SizedBox(height: 8),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.38))),
+            const SizedBox(height: 8),
             Text('Appuie sur + pour en ajouter un',
-                style: TextStyle(color: Colors.white24, fontSize: 12)),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.24),
+                    fontSize: 12)),
           ],
         ),
       );
@@ -36,26 +41,24 @@ class ContactsScreen extends StatelessWidget {
         final c = contacts[i];
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: cs.surfaceContainerHigh,
             child: Text(
               c.displayName.isNotEmpty
                   ? c.displayName[0].toUpperCase()
                   : '?',
-              style: const TextStyle(
-                  color: Color(0xFF00F5FF),
-                  fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: cs.primary, fontWeight: FontWeight.bold),
             ),
           ),
           title: Text(c.displayName,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  color: cs.onSurface, fontWeight: FontWeight.w600)),
           subtitle: Text(c.phone,
-              style: const TextStyle(color: Colors.white38)),
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.38))),
           onTap: () async {
             final chat = context.read<ChatProvider>();
-            final conv =
-                await chat.openDirectChat(myUid, c.uid);
+            final conv = await chat.openDirectChat(myUid, c.uid);
             if (!context.mounted) return;
             Navigator.push(
               context,

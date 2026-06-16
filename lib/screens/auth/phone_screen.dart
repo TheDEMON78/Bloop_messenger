@@ -24,7 +24,6 @@ class _PhoneScreenState extends State<PhoneScreen> {
 
   @override
   void dispose() {
-    // Remove listener safely
     try {
       context.read<AuthProvider>().removeListener(_onAuthStateChange);
     } catch (_) {}
@@ -53,9 +52,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
   }
 
   String _cleanPhone(String input) {
-    // Remove all spaces
     String digits = input.trim().replaceAll(RegExp(r'\s+'), '');
-    // Remove leading 0 (French numbers: 0612345678 -> 612345678)
     if (digits.startsWith('0')) digits = digits.substring(1);
     return digits;
   }
@@ -72,12 +69,12 @@ class _PhoneScreenState extends State<PhoneScreen> {
       return;
     }
     final phone = '$_countryCode$cleaned';
-    final auth = context.read<AuthProvider>();
-    await auth.sendOtp(phone);
+    await context.read<AuthProvider>().sendOtp(phone);
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final auth = context.watch<AuthProvider>();
     return Scaffold(
       body: SafeArea(
@@ -87,27 +84,29 @@ class _PhoneScreenState extends State<PhoneScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Spacer(),
-              const Text(
+              Text(
                 'Bloop',
                 style: TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF00F5FF),
+                  color: cs.primary,
                   letterSpacing: 4,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Entre ton numéro de téléphone',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.7),
+                    fontSize: 16),
               ),
               const SizedBox(height: 48),
               Row(
                 children: [
                   DropdownButton<String>(
                     value: _countryCode,
-                    dropdownColor: const Color(0xFF1A1A2E),
-                    style: const TextStyle(color: Colors.white),
+                    dropdownColor: cs.surfaceContainerHigh,
+                    style: TextStyle(color: cs.onSurface),
                     items: const [
                       DropdownMenuItem(value: '+33', child: Text('+33 🇫🇷')),
                       DropdownMenuItem(value: '+1', child: Text('+1 🇺🇸')),
@@ -127,18 +126,9 @@ class _PhoneScreenState extends State<PhoneScreen> {
                     child: TextField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 18),
+                      style: TextStyle(color: cs.onSurface, fontSize: 18),
                       decoration: const InputDecoration(
                         hintText: '6 12 34 56 78',
-                        hintStyle: TextStyle(color: Colors.white30),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF00F5FF)),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Color(0xFF00F5FF), width: 2),
-                        ),
                       ),
                     ),
                   ),
@@ -151,18 +141,18 @@ class _PhoneScreenState extends State<PhoneScreen> {
                   onPressed:
                       auth.state == AuthState.loading ? null : _send,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00F5FF),
-                    foregroundColor: Colors.black,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: auth.state == AuthState.loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.black),
+                              strokeWidth: 2, color: cs.onPrimary),
                         )
                       : const Text('Continuer',
                           style: TextStyle(

@@ -35,6 +35,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -43,32 +44,33 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Spacer(),
-              const Text(
+              Text(
                 'Ton profil',
                 style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF00F5FF)),
+                    color: cs.primary),
               ),
               const SizedBox(height: 8),
-              const Text('Choisis un nom d\'affichage',
-                  style: TextStyle(color: Colors.white70)),
+              Text('Choisis un nom d\'affichage',
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.7))),
               const SizedBox(height: 40),
               Center(
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 52,
-                      backgroundColor: Color(0xFF1A1A2E),
+                      backgroundColor: cs.surfaceContainerHigh,
                       child: Icon(Icons.person,
-                          size: 52, color: Color(0xFF00F5FF)),
+                          size: 52, color: cs.primary),
                     ),
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: const Color(0xFF00F5FF),
-                      child: const Icon(Icons.camera_alt,
-                          size: 16, color: Colors.black),
+                      backgroundColor: cs.primary,
+                      child: Icon(Icons.camera_alt,
+                          size: 16, color: cs.onPrimary),
                     ),
                   ],
                 ),
@@ -76,30 +78,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               const SizedBox(height: 32),
               TextField(
                 controller: _nameCtrl,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-                decoration: const InputDecoration(
-                  labelText: 'Nom',
-                  labelStyle: TextStyle(color: Color(0xFF00F5FF)),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF00F5FF))),
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFF00F5FF), width: 2)),
-                ),
+                style: TextStyle(color: cs.onSurface, fontSize: 18),
+                decoration: const InputDecoration(labelText: 'Nom'),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _statusCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: cs.onSurface),
                 decoration: const InputDecoration(
                   labelText: 'Statut (optionnel)',
-                  labelStyle: TextStyle(color: Colors.white54),
                   hintText: 'Disponible',
-                  hintStyle: TextStyle(color: Colors.white24),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white24)),
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF00F5FF))),
                 ),
               ),
               const SizedBox(height: 48),
@@ -108,8 +96,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 child: ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00F5FF),
-                    foregroundColor: Colors.black,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),

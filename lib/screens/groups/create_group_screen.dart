@@ -27,8 +27,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty || _selected.isEmpty) return;
     setState(() => _creating = true);
-    final myUid =
-        context.read<AuthProvider>().user?.uid ?? '';
+    final myUid = context.read<AuthProvider>().user?.uid ?? '';
     final conv = await context.read<ChatProvider>().createGroup(
           creatorUid: myUid,
           groupName: name,
@@ -46,8 +45,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final contacts =
-        context.watch<ContactsProvider>().contacts;
+    final cs = Theme.of(context).colorScheme;
+    final contacts = context.watch<ContactsProvider>().contacts;
 
     return Scaffold(
       appBar: AppBar(
@@ -56,15 +55,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           TextButton(
             onPressed: _creating ? null : _create,
             child: _creating
-                ? const SizedBox(
+                ? SizedBox(
                     height: 16,
                     width: 16,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF00F5FF)))
-                : const Text('Créer',
+                        strokeWidth: 2, color: cs.primary))
+                : Text('Créer',
                     style: TextStyle(
-                        color: Color(0xFF00F5FF),
+                        color: cs.primary,
                         fontWeight: FontWeight.bold)),
           ),
         ],
@@ -75,40 +73,33 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             padding: const EdgeInsets.all(16),
             child: TextField(
               controller: _nameCtrl,
-              style:
-                  const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Nom du groupe',
-                labelStyle:
-                    TextStyle(color: Color(0xFF00F5FF)),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF00F5FF))),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Color(0xFF00F5FF), width: 2)),
-              ),
+              style: TextStyle(color: cs.onSurface),
+              decoration:
+                  const InputDecoration(labelText: 'Nom du groupe'),
             ),
           ),
-          const Padding(
+          Padding(
             padding:
-                EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text('Sélectionne des membres',
-                style: TextStyle(
-                    color: Colors.white54, fontSize: 12)),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Sélectionne des membres',
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.54),
+                      fontSize: 12)),
+            ),
           ),
           Expanded(
             child: contacts.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text('Aucun contact',
-                        style:
-                            TextStyle(color: Colors.white38)))
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.38))))
                 : ListView.builder(
                     itemCount: contacts.length,
                     itemBuilder: (_, i) {
                       final c = contacts[i];
-                      final isSelected =
-                          _selected.contains(c.uid);
+                      final isSelected = _selected.contains(c.uid);
                       return CheckboxListTile(
                         value: isSelected,
                         onChanged: (_) => setState(() {
@@ -118,27 +109,23 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             _selected.add(c.uid);
                           }
                         }),
-                        activeColor:
-                            const Color(0xFF00F5FF),
-                        checkColor: Colors.black,
+                        activeColor: cs.primary,
+                        checkColor: cs.onPrimary,
                         title: Text(c.displayName,
-                            style: const TextStyle(
-                                color: Colors.white)),
+                            style: TextStyle(color: cs.onSurface)),
                         subtitle: Text(c.phone,
-                            style: const TextStyle(
-                                color: Colors.white38)),
+                            style: TextStyle(
+                                color: cs.onSurface
+                                    .withValues(alpha: 0.38))),
                         secondary: CircleAvatar(
-                          backgroundColor:
-                              const Color(0xFF1A1A2E),
+                          backgroundColor: cs.surfaceContainerHigh,
                           child: Text(
                             c.displayName.isNotEmpty
-                                ? c.displayName[0]
-                                    .toUpperCase()
+                                ? c.displayName[0].toUpperCase()
                                 : '?',
-                            style: const TextStyle(
-                                color: Color(0xFF00F5FF),
-                                fontWeight:
-                                    FontWeight.bold),
+                            style: TextStyle(
+                                color: cs.primary,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       );
@@ -149,8 +136,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             padding: const EdgeInsets.all(12),
             child: Text(
               '${_selected.length} membre(s) sélectionné(s)',
-              style: const TextStyle(
-                  color: Colors.white54, fontSize: 12),
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.54),
+                  fontSize: 12),
             ),
           ),
         ],

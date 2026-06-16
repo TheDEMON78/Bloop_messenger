@@ -41,63 +41,46 @@ class _ProfileView extends StatelessWidget {
   }
 
   Future<void> _editProfile(BuildContext context) async {
-    final nameCtrl =
-        TextEditingController(text: user?.displayName ?? '');
-    final statusCtrl =
-        TextEditingController(text: user?.status ?? '');
+    final cs = Theme.of(context).colorScheme;
+    final nameCtrl = TextEditingController(text: user?.displayName ?? '');
+    final statusCtrl = TextEditingController(text: user?.status ?? '');
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Modifier le profil',
-            style: TextStyle(color: Colors.white)),
+        title: Text('Modifier le profil',
+            style: TextStyle(color: cs.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: cs.onSurface),
               maxLength: 30,
-              decoration: const InputDecoration(
-                labelText: 'Nom affiché',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF00F5FF))),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF00F5FF), width: 2)),
-                counterStyle: TextStyle(color: Colors.white38),
-              ),
+              decoration:
+                  const InputDecoration(labelText: 'Nom affiché'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: statusCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: cs.onSurface),
               maxLength: 60,
               decoration: const InputDecoration(
-                labelText: 'Statut (ex: Disponible)',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF00F5FF))),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF00F5FF), width: 2)),
-                counterStyle: TextStyle(color: Colors.white38),
-              ),
+                  labelText: 'Statut (ex: Disponible)'),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Annuler',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.54))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00F5FF),
-              foregroundColor: Colors.black,
+              backgroundColor: cs.primary,
+              foregroundColor: cs.onPrimary,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Enregistrer',
@@ -108,10 +91,8 @@ class _ProfileView extends StatelessWidget {
     );
 
     if (saved != true) return;
-
     final newName = nameCtrl.text.trim();
     if (newName.isEmpty) return;
-
     await FirestoreService().updateProfile(
       uid: uid,
       displayName: newName,
@@ -120,21 +101,23 @@ class _ProfileView extends StatelessWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context) async {
+    final cs = Theme.of(context).colorScheme;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
         title: const Text('Supprimer mon compte',
             style: TextStyle(color: Colors.redAccent)),
-        content: const Text(
+        content: Text(
           'Cette action est irréversible.\n\nTon profil, tes messages et tes contacts seront définitivement supprimés.',
-          style: TextStyle(color: Colors.white70),
+          style:
+              TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler',
-                style: TextStyle(color: Colors.white54)),
+            child: Text('Annuler',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.54))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -167,7 +150,6 @@ class _ProfileView extends StatelessWidget {
           const SnackBar(
             content:
                 Text('Reconnecte-toi d\'abord pour supprimer ton compte.'),
-            backgroundColor: Color(0xFF1A1A2E),
           ),
         );
         await context.read<AuthProvider>().signOut();
@@ -190,29 +172,29 @@ class _ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final phone =
         FirebaseAuth.instance.currentUser?.phoneNumber ?? user?.phone ?? '';
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           children: [
             const SizedBox(height: 16),
-
-            // Avatar + edit button
             Center(
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   CircleAvatar(
                     radius: 56,
-                    backgroundColor: const Color(0xFF112240),
+                    backgroundColor: cs.surfaceContainerHigh,
                     child: Text(
                       _initials,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 42,
-                          color: Color(0xFF00F5FF),
+                          color: cs.primary,
                           fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -224,108 +206,89 @@ class _ProfileView extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00F5FF),
+                          color: cs.primary,
                           shape: BoxShape.circle,
                           border: Border.all(
-                              color: const Color(0xFF0A0A0F), width: 2),
+                              color: Theme.of(context)
+                                  .scaffoldBackgroundColor,
+                              width: 2),
                         ),
-                        child: const Icon(Icons.edit,
-                            color: Colors.black, size: 16),
+                        child: Icon(Icons.edit,
+                            color: cs.onPrimary, size: 16),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Name
             Center(
               child: user == null
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF00F5FF)),
+                          strokeWidth: 2, color: cs.primary),
                     )
                   : Text(
                       user!.displayName.isNotEmpty
                           ? user!.displayName
                           : 'Sans nom',
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: cs.onSurface,
                           fontSize: 22,
                           fontWeight: FontWeight.bold),
                     ),
             ),
-
             const SizedBox(height: 6),
-
-            // Phone
             Center(
               child: Text(
                 phone,
-                style:
-                    const TextStyle(color: Color(0xFF00F5FF), fontSize: 15),
+                style: TextStyle(color: cs.primary, fontSize: 15),
               ),
             ),
-
-            const SizedBox(height: 6),
-
-            // Status
-            if (user?.status?.isNotEmpty == true)
+            if (user?.status?.isNotEmpty == true) ...[  
+              const SizedBox(height: 4),
               Center(
                 child: Text(
                   user!.status!,
-                  style: const TextStyle(
-                      color: Colors.white54, fontSize: 13),
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.54),
+                      fontSize: 13),
                 ),
               ),
-
+            ],
             const SizedBox(height: 32),
-
-            // Edit profile button
             OutlinedButton.icon(
               onPressed: () => _editProfile(context),
-              icon: const Icon(Icons.edit_outlined,
-                  color: Color(0xFF00F5FF), size: 18),
-              label: const Text('Modifier le profil',
-                  style: TextStyle(color: Color(0xFF00F5FF))),
+              icon: Icon(Icons.edit_outlined, color: cs.primary, size: 18),
+              label: Text('Modifier le profil',
+                  style: TextStyle(color: cs.primary)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF00F5FF), width: 1.2),
+                side: BorderSide(color: cs.primary, width: 1.2),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
             ),
-
             const SizedBox(height: 24),
-            const Divider(color: Color(0xFF1A1A2E), thickness: 1),
-
-            // Info tiles
+            Divider(color: cs.surfaceContainerHigh, thickness: 1),
             _InfoTile(
-              icon: Icons.phone_outlined,
-              label: 'Téléphone',
-              value: phone,
-            ),
+                icon: Icons.phone_outlined,
+                label: 'Téléphone',
+                value: phone),
             if (user?.status?.isNotEmpty == true)
               _InfoTile(
-                icon: Icons.info_outline,
-                label: 'Statut',
-                value: user!.status!,
-              ),
-
-            const Divider(color: Color(0xFF1A1A2E), thickness: 1),
+                  icon: Icons.info_outline,
+                  label: 'Statut',
+                  value: user!.status!),
+            Divider(color: cs.surfaceContainerHigh, thickness: 1),
             const SizedBox(height: 8),
-
-            // Logout
             ListTile(
-              leading:
-                  const Icon(Icons.logout, color: Colors.white54, size: 22),
-              title: const Text('Se déconnecter',
-                  style: TextStyle(color: Colors.white)),
+              leading: Icon(Icons.logout,
+                  color: cs.onSurface.withValues(alpha: 0.54), size: 22),
+              title: Text('Se déconnecter',
+                  style: TextStyle(color: cs.onSurface)),
               onTap: () async {
                 await context.read<AuthProvider>().signOut();
                 if (!context.mounted) return;
@@ -336,11 +299,8 @@ class _ProfileView extends StatelessWidget {
                 );
               },
             ),
-
-            const Divider(color: Color(0xFF1A1A2E), thickness: 1),
+            Divider(color: cs.surfaceContainerHigh, thickness: 1),
             const SizedBox(height: 8),
-
-            // Delete account
             ListTile(
               leading: const Icon(Icons.delete_forever,
                   color: Colors.redAccent, size: 22),
@@ -368,22 +328,23 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF00F5FF), size: 20),
+          Icon(icon, color: cs.primary, size: 20),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: const TextStyle(
-                      color: Colors.white38, fontSize: 11)),
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.38),
+                      fontSize: 11)),
               const SizedBox(height: 2),
               Text(value,
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 15)),
+                  style: TextStyle(color: cs.onSurface, fontSize: 15)),
             ],
           ),
         ],

@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final titles = ['Messages', 'Contacts', 'Profil'];
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -71,20 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
+            icon: Icon(Icons.chat_bubble_outline, color: cs.onSurface.withValues(alpha: 0.6)),
+            selectedIcon: Icon(Icons.chat_bubble, color: cs.primary),
             label: 'Messages',
           ),
           NavigationDestination(
-            icon: Icon(Icons.contacts_outlined),
-            selectedIcon: Icon(Icons.contacts),
+            icon: Icon(Icons.contacts_outlined, color: cs.onSurface.withValues(alpha: 0.6)),
+            selectedIcon: Icon(Icons.contacts, color: cs.primary),
             label: 'Contacts',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline, color: cs.onSurface.withValues(alpha: 0.6)),
+            selectedIcon: Icon(Icons.person, color: cs.primary),
             label: 'Profil',
           ),
         ],
@@ -98,22 +99,26 @@ class _ConversationsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final conversations = context.watch<ChatProvider>().conversations;
     final myUid = context.read<AuthProvider>().user?.uid ?? '';
 
     if (conversations.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.chat_bubble_outline,
-                size: 64, color: Colors.white24),
-            SizedBox(height: 16),
+                size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
+            const SizedBox(height: 16),
             Text('Aucune conversation',
-                style: TextStyle(color: Colors.white38)),
-            SizedBox(height: 8),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.38))),
+            const SizedBox(height: 8),
             Text('Ajoute un contact pour commencer',
-                style: TextStyle(color: Colors.white24, fontSize: 12)),
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.24),
+                    fontSize: 12)),
           ],
         ),
       );
@@ -135,6 +140,7 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final title = conv.isGroup
         ? (conv.groupName ?? 'Groupe')
         : conv.participants
@@ -143,29 +149,29 @@ class _ConversationTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: cs.surfaceContainerHigh,
         child: Icon(
           conv.isGroup ? Icons.group : Icons.person,
-          color: const Color(0xFF00F5FF),
+          color: cs.primary,
         ),
       ),
       title: Text(title,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w600)),
+          style: TextStyle(
+              color: cs.onSurface, fontWeight: FontWeight.w600)),
       subtitle: Text(
         conv.lastMessage ?? '',
-        style: const TextStyle(color: Colors.white38),
+        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       trailing: unread > 0
           ? CircleAvatar(
               radius: 10,
-              backgroundColor: const Color(0xFF00F5FF),
+              backgroundColor: cs.primary,
               child: Text(
                 '$unread',
-                style: const TextStyle(
-                    color: Colors.black,
+                style: TextStyle(
+                    color: cs.onPrimary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold),
               ),

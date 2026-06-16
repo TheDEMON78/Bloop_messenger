@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'auth/phone_screen.dart';
 import 'home/home_screen.dart';
 
@@ -26,20 +27,33 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (!mounted) return;
-      _controller.forward().then((_) {
-        if (!mounted) return;
-        final user = FirebaseAuth.instance.currentUser;
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) =>
-                user != null ? const HomeScreen() : const PhoneScreen(),
-            transitionDuration: Duration.zero,
-          ),
-        );
-      });
-    });
+    _checkUpdateThenNavigate();
+  }
+
+  Future<void> _checkUpdateThenNavigate() async {
+    // Check for Play Store update (silently ignore any error)
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (_) {}
+
+    // Wait the splash delay then navigate
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+
+    await _controller.forward();
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) =>
+            user != null ? const HomeScreen() : const PhoneScreen(),
+        transitionDuration: Duration.zero,
+      ),
+    );
   }
 
   @override

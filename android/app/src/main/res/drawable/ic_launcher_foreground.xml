@@ -7,30 +7,48 @@
 
     <!-- Outer glow -->
     <path
-        android:fillColor="#1A00F5FF"
-        android:pathData="M18,26 Q18,16 28,16 L80,16 Q90,16 90,26 L90,64 Q90,74 80,74 L62,74 L54,90 L46,74 L28,74 Q18,74 18,64 Z"/>
+        android:fillColor="#2200F5FF"
+        android:pathData="M14,20 Q14,8 26,8 L82,8 Q94,8 94,20 L94,64 Q94,76 82,76 L63,76 L54,94 L45,76 L26,76 Q14,76 14,64 Z"/>
 
     <!-- Bubble body -->
     <path
-        android:fillColor="#FF010D20"
+        android:fillColor="#FF010D1F"
         android:strokeColor="#FF00F5FF"
-        android:strokeWidth="2.5"
+        android:strokeWidth="3"
         android:strokeLineJoin="round"
-        android:pathData="M22,28 Q22,20 30,20 L78,20 Q86,20 86,28 L86,62 Q86,70 78,70 L60,70 L54,84 L48,70 L30,70 Q22,70 22,62 Z"/>
+        android:pathData="M18,22 Q18,12 28,12 L80,12 Q90,12 90,22 L90,62 Q90,72 80,72 L63,72 L54,88 L45,72 L28,72 Q18,72 18,62 Z"/>
 
-    <!-- Dot 1 -->
+    <!-- Dot left — bright cyan -->
+    <path
+        android:fillColor="#4400F5FF"
+        android:pathData="M35,42 m-9,0 a9,9,0,1,0,18,0 a9,9,0,1,0,-18,0"/>
     <path
         android:fillColor="#FF00F5FF"
-        android:pathData="M38,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
-
-    <!-- Dot 2 -->
+        android:pathData="M35,42 m-6,0 a6,6,0,1,0,12,0 a6,6,0,1,0,-12,0"/>
     <path
-        android:fillColor="#BB00F5FF"
-        android:pathData="M54,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M35,42 m-2.5,0 a2.5,2.5,0,1,0,5,0 a2.5,2.5,0,1,0,-5,0"/>
 
-    <!-- Dot 3 -->
+    <!-- Dot center — medium -->
     <path
-        android:fillColor="#5500F5FF"
-        android:pathData="M70,45 m-5,0 a5,5,0,1,0,10,0 a5,5,0,1,0,-10,0"/>
+        android:fillColor="#3300F5FF"
+        android:pathData="M54,42 m-9,0 a9,9,0,1,0,18,0 a9,9,0,1,0,-18,0"/>
+    <path
+        android:fillColor="#CC00F5FF"
+        android:pathData="M54,42 m-6,0 a6,6,0,1,0,12,0 a6,6,0,1,0,-12,0"/>
+    <path
+        android:fillColor="#AAFFFFFF"
+        android:pathData="M54,42 m-2.5,0 a2.5,2.5,0,1,0,5,0 a2.5,2.5,0,1,0,-5,0"/>
+
+    <!-- Dot right — dim -->
+    <path
+        android:fillColor="#2200F5FF"
+        android:pathData="M73,42 m-9,0 a9,9,0,1,0,18,0 a9,9,0,1,0,-18,0"/>
+    <path
+        android:fillColor="#6600F5FF"
+        android:pathData="M73,42 m-6,0 a6,6,0,1,0,12,0 a6,6,0,1,0,-12,0"/>
+    <path
+        android:fillColor="#55FFFFFF"
+        android:pathData="M73,42 m-2.5,0 a2.5,2.5,0,1,0,5,0 a2.5,2.5,0,1,0,-5,0"/>
 
 </vector>

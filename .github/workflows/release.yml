@@ -74,7 +74,7 @@ jobs:
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}"  > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}"     >> android/key.properties
+          echo "keyPassword=${{ secrets.STORE_PASSWORD }}"   >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}"           >> android/key.properties
           echo "storeFile=bloop-messenger-release.jks"       >> android/key.properties
 
@@ -92,7 +92,7 @@ jobs:
             PREV_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
           GITHUB_NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"• %s" \
-            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|ci(\|build:\|chore:' \
+            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:' \
             | awk '!seen[$0]++' \
             | head -10)
           if [ -z "$GITHUB_NOTES" ]; then

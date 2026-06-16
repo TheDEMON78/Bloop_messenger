@@ -45,7 +45,7 @@ jobs:
       - name: Create key.properties
         run: |
           echo "storePassword=${{ secrets.STORE_PASSWORD }}"  > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}"     >> android/key.properties
+          echo "keyPassword=${{ secrets.STORE_PASSWORD }}"   >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}"           >> android/key.properties
           echo "storeFile=bloop-messenger-release.jks"       >> android/key.properties
 

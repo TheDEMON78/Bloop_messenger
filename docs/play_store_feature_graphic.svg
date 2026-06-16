@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#0D1F3C"/>
+      <stop offset="100%" stop-color="#010D1F"/>
+    </radialGradient>
+    <radialGradient id="dotC" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="35%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#008A99" stop-opacity="0.7"/>
+    </radialGradient>
+    <radialGradient id="dotS" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#CCFEFF"/>
+      <stop offset="40%" stop-color="#00D8E8"/>
+      <stop offset="100%" stop-color="#005A66" stop-opacity="0.6"/>
+    </radialGradient>
+    <radialGradient id="bubbleFill" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#112240"/>
+      <stop offset="100%" stop-color="#060E1E"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="textglow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="120" cy="60" r="1.5" fill="#fff" opacity="0.3"/>
+  <circle cx="300" cy="30" r="1" fill="#fff" opacity="0.25"/>
+  <circle cx="500" cy="80" r="1.5" fill="#fff" opacity="0.2"/>
+  <circle cx="700" cy="45" r="1" fill="#fff" opacity="0.3"/>
+  <circle cx="900" cy="70" r="1.5" fill="#fff" opacity="0.22"/>
+  <circle cx="60" cy="420" r="1.2" fill="#fff" opacity="0.2"/>
+  <circle cx="950" cy="430" r="1.2" fill="#fff" opacity="0.18"/>
+  <circle cx="450" cy="450" r="1" fill="#fff" opacity="0.15"/>
+  <circle cx="200" cy="200" r="1" fill="#fff" opacity="0.15"/>
+
+  <!-- LEFT SIDE — Text -->
+  <!-- Bloop wordmark -->
+  <text x="80" y="230" font-family="Arial, sans-serif" font-size="110" font-weight="900"
+        letter-spacing="6" fill="#00F5FF" filter="url(#textglow)">Bloop</text>
+
+  <!-- Tagline -->
+  <text x="84" y="290" font-family="Arial, sans-serif" font-size="28" font-weight="300"
+        letter-spacing="2" fill="#FFFFFF" opacity="0.65">Messagerie instantan&#233;e</text>
+  <text x="84" y="328" font-family="Arial, sans-serif" font-size="28" font-weight="300"
+        letter-spacing="2" fill="#FFFFFF" opacity="0.65">li&#233;e &#224; ton num&#233;ro</text>
+
+  <!-- Cyan line accent -->
+  <rect x="84" y="355" width="180" height="3" rx="2" fill="#00F5FF" opacity="0.6"/>
+
+  <!-- RIGHT SIDE — Big speech bubble -->
+  <!-- Outer glow -->
+  <path d="M570 90 Q570 50 615 50 L940 50 Q980 50 980 90 L980 340 Q980 380 940 380 L740 380 L695 445 L710 380 L615 380 Q570 380 570 340 Z"
+        fill="none" stroke="#00F5FF" stroke-width="10" opacity="0.1" filter="url(#glow)"/>
+
+  <!-- Bubble body -->
+  <path d="M570 90 Q570 50 615 50 L940 50 Q980 50 980 90 L980 340 Q980 380 940 380 L740 380 L695 445 L710 380 L615 380 Q570 380 570 340 Z"
+        fill="url(#bubbleFill)" stroke="#00F5FF" stroke-width="2.5" stroke-opacity="0.5"/>
+
+  <!-- Dot halos -->
+  <circle cx="680" cy="215" r="38" fill="#00F5FF" opacity="0.07" filter="url(#glow)"/>
+  <circle cx="775" cy="215" r="48" fill="#00F5FF" opacity="0.1" filter="url(#glow)"/>
+  <circle cx="875" cy="215" r="42" fill="#00F5FF" opacity="0.08" filter="url(#glow)"/>
+
+  <!-- Left dot -->
+  <circle cx="680" cy="215" r="26" fill="url(#dotS)"/>
+
+  <!-- Center dot (largest) -->
+  <circle cx="775" cy="215" r="34" fill="url(#dotC)"/>
+
+  <!-- Right dot -->
+  <circle cx="875" cy="215" r="30" fill="url(#dotS)"/>
+</svg>

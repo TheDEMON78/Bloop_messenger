@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#0D1F3C"/>
+      <stop offset="100%" stop-color="#010D1F"/>
+    </radialGradient>
+    <radialGradient id="bubbleFill" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#112240"/>
+      <stop offset="100%" stop-color="#060E1E"/>
+    </radialGradient>
+    <filter id="glow1">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="dotCenter" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="35%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#008A99" stop-opacity="0.7"/>
+    </radialGradient>
+    <radialGradient id="dotSide" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#CCFEFF"/>
+      <stop offset="40%" stop-color="#00D8E8"/>
+      <stop offset="100%" stop-color="#005A66" stop-opacity="0.6"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="75" cy="55" r="1.8" fill="#fff" opacity="0.35"/>
+  <circle cx="430" cy="40" r="1.2" fill="#fff" opacity="0.25"/>
+  <circle cx="470" cy="130" r="1.5" fill="#fff" opacity="0.28"/>
+  <circle cx="50" cy="310" r="1.2" fill="#fff" opacity="0.2"/>
+  <circle cx="460" cy="400" r="1.8" fill="#fff" opacity="0.22"/>
+  <circle cx="90" cy="450" r="1.2" fill="#fff" opacity="0.18"/>
+  <circle cx="390" cy="470" r="1.5" fill="#fff" opacity="0.2"/>
+  <circle cx="340" cy="70" r="1" fill="#fff" opacity="0.3"/>
+  <circle cx="150" cy="80" r="1.2" fill="#fff" opacity="0.2"/>
+
+  <!-- Outer glow of bubble -->
+  <path d="M128 165 Q128 108 185 108 L327 108 Q384 108 384 165 L384 298 Q384 355 327 355 L228 355 L190 408 L202 355 L185 355 Q128 355 128 298 Z"
+        fill="none" stroke="#00F5FF" stroke-width="8" opacity="0.12" filter="url(#glow1)"/>
+
+  <!-- Speech bubble body -->
+  <path d="M128 165 Q128 108 185 108 L327 108 Q384 108 384 165 L384 298 Q384 355 327 355 L228 355 L190 408 L202 355 L185 355 Q128 355 128 298 Z"
+        fill="url(#bubbleFill)" stroke="#00F5FF" stroke-width="2.5" stroke-opacity="0.55"/>
+
+  <!-- Dot glow halos -->
+  <circle cx="184" cy="232" r="30" fill="#00F5FF" opacity="0.08" filter="url(#glow1)"/>
+  <circle cx="256" cy="232" r="36" fill="#00F5FF" opacity="0.12" filter="url(#glow1)"/>
+  <circle cx="328" cy="232" r="30" fill="#00F5FF" opacity="0.08" filter="url(#glow1)"/>
+
+  <!-- Left dot -->
+  <circle cx="184" cy="232" r="20" fill="url(#dotSide)" filter="url(#glow2)"/>
+
+  <!-- Center dot (largest) -->
+  <circle cx="256" cy="232" r="26" fill="url(#dotCenter)" filter="url(#glow2)"/>
+
+  <!-- Right dot -->
+  <circle cx="328" cy="232" r="22" fill="url(#dotSide)" filter="url(#glow2)"/>
+</svg>

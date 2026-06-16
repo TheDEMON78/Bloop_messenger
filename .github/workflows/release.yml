@@ -1,0 +1,136 @@
+name: Build & Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
+
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > android/app/google-services.json
+
+      - name: Generate firebase_options.dart
+        run: echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 -d > lib/firebase_options.dart
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Compute version
+        id: ver
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          MINOR=$((COUNT / 100))
+          PATCH=$((COUNT % 100))
+          VERSION="1.${MINOR}.${PATCH}"
+          FULL="${VERSION}+${COUNT}"
+          sed -i "s/^version: .*/version: ${FULL}/" pubspec.yaml
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "full=${FULL}" >> $GITHUB_OUTPUT
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/bloop-messenger-release.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}"  > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}"     >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}"           >> android/key.properties
+          echo "storeFile=bloop-messenger-release.jks"       >> android/key.properties
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
+
+      - name: Build APK
+        run: flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Generate release notes
+        run: |
+          mkdir -p whatsnew
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          GITHUB_NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"• %s" \
+            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|ci(\|build:\|chore:' \
+            | awk '!seen[$0]++' \
+            | head -10)
+          if [ -z "$GITHUB_NOTES" ]; then
+            GITHUB_NOTES="• Améliorations et corrections diverses"
+          fi
+          printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$GITHUB_NOTES" > release_notes.txt
+          LAST_RELEASE=$(git log --pretty=format:"%H" --grep='\[release\]' | sed -n '2p')
+          if [ -z "$LAST_RELEASE" ]; then
+            LAST_RELEASE=$(git rev-list --max-parents=0 HEAD)
+          fi
+          STORE_NOTES=$(git log ${LAST_RELEASE}..HEAD --pretty=format:"• %s" \
+            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:' \
+            | awk '!seen[$0]++' \
+            | head -10)
+          if [ -z "$STORE_NOTES" ]; then
+            STORE_NOTES="• Améliorations et corrections diverses"
+          fi
+          echo "$STORE_NOTES" | head -c 490 > whatsnew/whatsnew-fr-FR
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Bloop Messenger v${{ steps.ver.outputs.version }}
+          body_path: release_notes.txt
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Play Store
+        if: contains(github.event.head_commit.message, '[release]')
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
+          packageName: com.bloop.messenger
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          tracks: alpha
+          status: completed
+          whatsNewDirectory: whatsnew

@@ -1,5 +1,4 @@
-• Première version de Bloop Messenger
-• Connexion par numéro de téléphone (code SMS)
-• Discussions privées et groupes
-• Mode sombre et mode clair automatique
-• Blocage et signalement d'utilisateurs
+• Correction : les contacts restent affichés après redémarrage de l'appli
+• Appui long sur un message pour le modifier ou le supprimer
+• Gestion des groupes : renommer, ajouter ou retirer des membres
+• Correction du titre de conversation (affichait l'identifiant au lieu du nom)

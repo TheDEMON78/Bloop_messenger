@@ -146,16 +146,55 @@ class FirestoreService {
     required List<String> memberUids,
     String? avatarUrl,
   }) async {
+    final allUids = [creatorUid, ...memberUids];
+    // Fetch display names for all members
+    final names = <String, String>{};
+    for (final uid in allUids) {
+      final u = await getUser(uid);
+      if (u != null) names[uid] = u.displayName;
+    }
     final docRef = _db.collection('conversations').doc();
     final conv = ConversationModel(
       id: docRef.id,
-      participants: [creatorUid, ...memberUids],
+      participants: allUids,
+      participantNames: names,
       isGroup: true,
       groupName: groupName,
       groupAvatar: avatarUrl,
+      creatorUid: creatorUid,
     );
     await docRef.set(conv.toMap());
     return conv;
+  }
+
+  Future<void> updateGroup({
+    required String conversationId,
+    String? newGroupName,
+    List<String>? addUids,
+    Map<String, String>? addNames,
+    List<String>? removeUids,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (newGroupName != null) updates['groupName'] = newGroupName;
+    if (addUids != null && addUids.isNotEmpty) {
+      updates['participants'] = FieldValue.arrayUnion(addUids);
+    }
+    if (removeUids != null && removeUids.isNotEmpty) {
+      updates['participants'] = FieldValue.arrayRemove(removeUids);
+    }
+    if (addNames != null) {
+      for (final e in addNames.entries) {
+        updates['participantNames.${e.key}'] = e.value;
+      }
+    }
+    if (removeUids != null) {
+      for (final uid in removeUids) {
+        updates['participantNames.$uid'] = FieldValue.delete();
+      }
+    }
+    if (updates.isNotEmpty) {
+      await _db.collection('conversations').doc(conversationId).update(updates);
+    }
   }
 
   Stream<List<MessageModel>> messagesStream(String conversationId) => _db
@@ -201,6 +240,32 @@ class FirestoreService {
       'lastMessageSenderId': senderId,
     });
     await batch.commit();
+  }
+
+  Future<void> editMessage(
+      String conversationId, String messageId, String newContent) async {
+    await _db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId)
+        .update({
+      'content': newContent,
+      'editedAt': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  Future<void> deleteMessage(
+      String conversationId, String messageId) async {
+    await _db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId)
+        .update({
+      'isDeleted': true,
+      'content': 'Message supprimé',
+    });
   }
 
   Future<void> markAsRead(String conversationId, String uid) async {

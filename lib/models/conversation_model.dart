@@ -8,6 +8,7 @@ class ConversationModel {
   final bool isGroup;
   final String? groupName;
   final String? groupAvatar;
+  final String? creatorUid;
   final Map<String, int> unreadCount;
 
   const ConversationModel({
@@ -20,6 +21,7 @@ class ConversationModel {
     this.isGroup = false,
     this.groupName,
     this.groupAvatar,
+    this.creatorUid,
     this.unreadCount = const {},
   });
 
@@ -38,6 +40,7 @@ class ConversationModel {
         isGroup: map['isGroup'] as bool? ?? false,
         groupName: map['groupName'] as String?,
         groupAvatar: map['groupAvatar'] as String?,
+        creatorUid: map['creatorUid'] as String?,
         unreadCount:
             Map<String, int>.from(map['unreadCount'] as Map? ?? {}),
       );
@@ -52,6 +55,7 @@ class ConversationModel {
         'isGroup': isGroup,
         'groupName': groupName,
         'groupAvatar': groupAvatar,
+        'creatorUid': creatorUid,
         'unreadCount': unreadCount,
       };
 }

@@ -58,6 +58,28 @@ class ChatProvider extends ChangeNotifier {
         replyToId: replyToId,
       );
 
+  Future<void> editMessage(
+          String conversationId, String messageId, String newContent) =>
+      _db.editMessage(conversationId, messageId, newContent);
+
+  Future<void> deleteMessage(String conversationId, String messageId) =>
+      _db.deleteMessage(conversationId, messageId);
+
+  Future<void> updateGroup({
+    required String conversationId,
+    String? newGroupName,
+    List<String>? addUids,
+    Map<String, String>? addNames,
+    List<String>? removeUids,
+  }) =>
+      _db.updateGroup(
+        conversationId: conversationId,
+        newGroupName: newGroupName,
+        addUids: addUids,
+        addNames: addNames,
+        removeUids: removeUids,
+      );
+
   @override
   void dispose() {
     _convSub?.cancel();

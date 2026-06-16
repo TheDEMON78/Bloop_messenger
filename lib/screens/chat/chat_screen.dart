@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../services/block_service.dart';
 import '../../services/firestore_service.dart';
+import '../groups/group_settings_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final ConversationModel conversation;
@@ -225,6 +226,21 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
+          if (widget.conversation.isGroup &&
+              widget.conversation.creatorUid == widget.myUid)
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'Paramètres du groupe',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupSettingsScreen(
+                    conversation: widget.conversation,
+                    myUid: widget.myUid,
+                  ),
+                ),
+              ),
+            ),
           if (isDirectChat)
             StreamBuilder<bool>(
               stream:
@@ -313,6 +329,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: _MessagesList(
                             messages: messages,
                             myUid: widget.myUid,
+                            conversationId: widget.conversation.id,
                             scrollCtrl: _scrollCtrl)),
                     if (!isBlocked)
                       _InputBar(controller: _msgCtrl, onSend: _send),
@@ -326,6 +343,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: _MessagesList(
                         messages: messages,
                         myUid: widget.myUid,
+                        conversationId: widget.conversation.id,
                         scrollCtrl: _scrollCtrl)),
                 _InputBar(controller: _msgCtrl, onSend: _send),
               ],
@@ -337,12 +355,96 @@ class _ChatScreenState extends State<ChatScreen> {
 class _MessagesList extends StatelessWidget {
   final List<MessageModel> messages;
   final String myUid;
+  final String conversationId;
   final ScrollController scrollCtrl;
 
-  const _MessagesList(
-      {required this.messages,
-      required this.myUid,
-      required this.scrollCtrl});
+  const _MessagesList({
+    required this.messages,
+    required this.myUid,
+    required this.conversationId,
+    required this.scrollCtrl,
+  });
+
+  void _showOptions(BuildContext context, MessageModel msg) {
+    final cs = Theme.of(context).colorScheme;
+    final chat = context.read<ChatProvider>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cs.surfaceContainerHigh,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit, color: cs.primary),
+              title: Text('Modifier', style: TextStyle(color: cs.onSurface)),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _showEditDialog(context, msg, chat);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.redAccent),
+              title: const Text('Supprimer',
+                  style: TextStyle(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                chat.deleteMessage(conversationId, msg.id);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(
+      BuildContext context, MessageModel msg, ChatProvider chat) {
+    final cs = Theme.of(context).colorScheme;
+    final ctrl = TextEditingController(text: msg.content);
+    showDialog(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        title:
+            Text('Modifier le message', style: TextStyle(color: cs.onSurface)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          style: TextStyle(color: cs.onSurface),
+          maxLines: null,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: cs.surfaceContainer,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dlgCtx),
+            child: Text('Annuler',
+                style:
+                    TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
+          ),
+          TextButton(
+            onPressed: () {
+              final newContent = ctrl.text.trim();
+              if (newContent.isNotEmpty && newContent != msg.content) {
+                chat.editMessage(conversationId, msg.id, newContent);
+              }
+              Navigator.pop(dlgCtx);
+            },
+            child: Text('Sauvegarder',
+                style: TextStyle(
+                    color: cs.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -355,13 +457,17 @@ class _MessagesList extends StatelessWidget {
     }
     return ListView.builder(
       controller: scrollCtrl,
-      padding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: messages.length,
-      itemBuilder: (_, i) {
+      itemBuilder: (ctx, i) {
         final msg = messages[i];
+        final isMe = msg.senderId == myUid;
         return _MessageBubble(
-            message: msg, isMe: msg.senderId == myUid);
+          message: msg,
+          isMe: isMe,
+          onLongPress:
+              isMe && !msg.isDeleted ? () => _showOptions(ctx, msg) : null,
+        );
       },
     );
   }
@@ -370,49 +476,83 @@ class _MessagesList extends StatelessWidget {
 class _MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
+  final VoidCallback? onLongPress;
 
-  const _MessageBubble({required this.message, required this.isMe});
+  const _MessageBubble(
+      {required this.message, required this.isMe, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDeleted = message.isDeleted;
+    final isEdited = !isDeleted && message.editedAt != null;
+
     return Align(
-      alignment:
-          isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75),
-        margin: const EdgeInsets.symmetric(vertical: 3),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMe ? cs.primary : cs.surfaceContainer,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isMe ? 18 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 18),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(message.content,
-                style: TextStyle(
-                    color: isMe ? cs.onPrimary : cs.onSurface,
-                    fontSize: 15)),
-            const SizedBox(height: 2),
-            Text(
-              DateFormat('HH:mm').format(message.timestamp),
-              style: TextStyle(
-                color: isMe
-                    ? cs.onPrimary.withValues(alpha: 0.6)
-                    : cs.onSurface.withValues(alpha: 0.38),
-                fontSize: 11,
-              ),
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: Container(
+          constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75),
+          margin: const EdgeInsets.symmetric(vertical: 3),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDeleted
+                ? (isMe ? cs.primary.withValues(alpha: 0.35) : cs.surfaceContainer.withValues(alpha: 0.5))
+                : (isMe ? cs.primary : cs.surfaceContainer),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isMe ? 18 : 4),
+              bottomRight: Radius.circular(isMe ? 4 : 18),
             ),
-          ],
+          ),
+          child: Column(
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Text(
+                message.content,
+                style: TextStyle(
+                  color: isDeleted
+                      ? (isMe
+                          ? cs.onPrimary.withValues(alpha: 0.5)
+                          : cs.onSurface.withValues(alpha: 0.4))
+                      : (isMe ? cs.onPrimary : cs.onSurface),
+                  fontSize: 15,
+                  fontStyle:
+                      isDeleted ? FontStyle.italic : FontStyle.normal,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isEdited)
+                    Text(
+                      'modifié · ',
+                      style: TextStyle(
+                        color: isMe
+                            ? cs.onPrimary.withValues(alpha: 0.5)
+                            : cs.onSurface.withValues(alpha: 0.38),
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  Text(
+                    DateFormat('HH:mm').format(message.timestamp),
+                    style: TextStyle(
+                      color: isMe
+                          ? cs.onPrimary.withValues(alpha: 0.6)
+                          : cs.onSurface.withValues(alpha: 0.38),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

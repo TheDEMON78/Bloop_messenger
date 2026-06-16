@@ -10,6 +10,8 @@ class MessageModel {
   final MessageStatus status;
   final DateTime timestamp;
   final String? replyToId;
+  final bool isDeleted;
+  final DateTime? editedAt;
 
   const MessageModel({
     required this.id,
@@ -20,6 +22,8 @@ class MessageModel {
     this.status = MessageStatus.sent,
     required this.timestamp,
     this.replyToId,
+    this.isDeleted = false,
+    this.editedAt,
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map) => MessageModel(
@@ -37,6 +41,10 @@ class MessageModel {
         ),
         timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
         replyToId: map['replyToId'] as String?,
+        isDeleted: map['isDeleted'] as bool? ?? false,
+        editedAt: map['editedAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(map['editedAt'] as int)
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
@@ -48,5 +56,7 @@ class MessageModel {
         'status': status.name,
         'timestamp': timestamp.millisecondsSinceEpoch,
         'replyToId': replyToId,
+        'isDeleted': isDeleted,
+        if (editedAt != null) 'editedAt': editedAt!.millisecondsSinceEpoch,
       };
 }

@@ -24,6 +24,8 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
 
   AuthProvider() {
+    // Sync init so HomeScreen.initState gets the UID immediately on restart
+    _user = FirebaseAuth.instance.currentUser;
     _authService.authStateChanges.listen((user) {
       _user = user;
       if (user != null && _state != AuthState.profileIncomplete) {

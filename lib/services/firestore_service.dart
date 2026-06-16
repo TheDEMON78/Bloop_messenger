@@ -25,6 +25,46 @@ class FirestoreService {
     return UserModel.fromMap(q.docs.first.data());
   }
 
+  Future<void> updateProfile({
+    required String uid,
+    required String displayName,
+    String? status,
+  }) async {
+    await _db.collection('users').doc(uid).update({
+      'displayName': displayName,
+      if (status != null && status.isNotEmpty) 'status': status,
+    });
+  }
+
+  Future<void> deleteUserData(String uid) async {
+    final batch = _db.batch();
+
+    // Delete contacts sub-collection
+    final contacts = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('contacts')
+        .get();
+    for (final doc in contacts.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Delete blocked sub-collection
+    final blocked = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('blocked')
+        .get();
+    for (final doc in blocked.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Delete user document
+    batch.delete(_db.collection('users').doc(uid));
+
+    await batch.commit();
+  }
+
   Future<void> addContact(String ownerUid, ContactModel contact) async {
     await _db
         .collection('users')

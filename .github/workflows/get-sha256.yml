@@ -1,0 +1,20 @@
+name: Get SHA-256 fingerprint
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fingerprint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.jks
+
+      - name: Print SHA-256 fingerprint
+        run: |
+          keytool -list -v \
+            -keystore release.jks \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -storepass "${{ secrets.STORE_PASSWORD }}" \
+            -keypass "${{ secrets.STORE_PASSWORD }}" \
+            2>/dev/null | grep "SHA256:"

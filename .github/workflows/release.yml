@@ -120,11 +120,12 @@ jobs:
 
       - name: Upload to Play Store
         if: contains(github.event.head_commit.message, '[release]')
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v2
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
           packageName: com.bloop.messenger
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          tracks: alpha
+          track: alpha
           status: completed
           whatsNewDirectory: whatsnew
+          changesNotSentForReview: true

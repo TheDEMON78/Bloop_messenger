@@ -86,31 +86,25 @@ jobs:
 
       - name: Generate release notes
         run: |
-          mkdir -p whatsnew
+          # GitHub Release notes: auto-generated from commits, technical ones filtered out
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             PREV_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
           GITHUB_NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"• %s" \
-            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:' \
+            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:\|feat:\|refactor:\|perf:\|test:' \
             | awk '!seen[$0]++' \
             | head -10)
           if [ -z "$GITHUB_NOTES" ]; then
             GITHUB_NOTES="• Améliorations et corrections diverses"
           fi
           printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$GITHUB_NOTES" > release_notes.txt
-          LAST_RELEASE=$(git log --pretty=format:"%H" --grep='\[release\]' | sed -n '2p')
-          if [ -z "$LAST_RELEASE" ]; then
-            LAST_RELEASE=$(git rev-list --max-parents=0 HEAD)
+
+          # Play Store notes: use the committed whatsnew file as-is
+          mkdir -p whatsnew
+          if [ ! -s whatsnew/whatsnew-fr-FR ]; then
+            echo "• Améliorations et corrections diverses" > whatsnew/whatsnew-fr-FR
           fi
-          STORE_NOTES=$(git log ${LAST_RELEASE}..HEAD --pretty=format:"• %s" \
-            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:' \
-            | awk '!seen[$0]++' \
-            | head -10)
-          if [ -z "$STORE_NOTES" ]; then
-            STORE_NOTES="• Améliorations et corrections diverses"
-          fi
-          echo "$STORE_NOTES" | head -c 490 > whatsnew/whatsnew-fr-FR
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

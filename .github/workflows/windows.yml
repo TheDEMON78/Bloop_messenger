@@ -27,9 +27,12 @@ jobs:
         run: flutter config --enable-windows-desktop
 
       - name: Generate firebase_options.dart
+        shell: powershell
         run: |
           [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.FIREBASE_OPTIONS_DART }}")) | Out-File -FilePath lib/firebase_options.dart -Encoding UTF8
-        shell: powershell
+
+      - name: Regenerate Windows scaffold
+        run: flutter create --platforms=windows .
 
       - name: Cache pub packages
         uses: actions/cache@v4

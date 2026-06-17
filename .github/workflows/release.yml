@@ -191,11 +191,12 @@ jobs:
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Install FlutterFire CLI and configure Firebase
+      - name: Install Firebase CLI, FlutterFire CLI and configure Firebase
         shell: powershell
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
+          npm install -g firebase-tools
           dart pub global activate flutterfire_cli
           $env:PATH = "$env:LOCALAPPDATA\Pub\Cache\bin;$env:PATH"
           flutterfire configure `

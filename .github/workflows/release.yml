@@ -189,6 +189,39 @@ jobs:
         run: |
           [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.FIREBASE_OPTIONS_DART }}")) | Out-File -FilePath lib/firebase_options.dart -Encoding UTF8
 
+      - name: Patch firebase_options.dart for Windows
+        shell: python
+        run: |
+          import re, sys
+          with open('lib/firebase_options.dart', 'r', encoding='utf-8') as f:
+              content = f.read()
+          if 'TargetPlatform.windows' in content:
+              print('Windows already configured.')
+              sys.exit(0)
+          # Find web config first, then android as fallback
+          src_name, config_body = None, None
+          for name in ('web', 'android', 'ios'):
+              m = re.search(
+                  rf'static const FirebaseOptions {name} = FirebaseOptions\((.*?)\);',
+                  content, re.DOTALL)
+              if m:
+                  src_name, config_body = name, m.group(1)
+                  break
+          if not config_body:
+              print('ERROR: no config found to clone for Windows')
+              sys.exit(1)
+          print(f'Cloning {src_name} config for Windows')
+          windows_entry = f'\n  static const FirebaseOptions windows = FirebaseOptions({config_body});\n'
+          content = re.sub(
+              rf'(static const FirebaseOptions {src_name} = FirebaseOptions\(.*?\);)',
+              r'\1' + windows_entry, content, count=1, flags=re.DOTALL)
+          content = content.replace(
+              'default:\n        throw UnsupportedError(',
+              'case TargetPlatform.windows:\n        return windows;\n      default:\n        throw UnsupportedError(')
+          with open('lib/firebase_options.dart', 'w', encoding='utf-8') as f:
+              f.write(content)
+          print('Windows Firebase config added.')
+
       - name: Regenerate Windows scaffold
         shell: powershell
         run: |

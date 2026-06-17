@@ -744,9 +744,10 @@ class _InputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     return Container(
       color: cs.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: EdgeInsets.fromLTRB(8, 8, 8, 8 + bottomInset),
       child: Row(
         children: [
           Expanded(

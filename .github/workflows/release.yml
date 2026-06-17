@@ -217,7 +217,10 @@ jobs:
         run: flutter config --enable-windows-desktop
 
       - name: Install FlutterFire CLI
-        run: dart pub global activate flutterfire_cli
+        shell: powershell
+        run: |
+          dart pub global activate flutterfire_cli
+          "$env:LOCALAPPDATA\Pub\Cache\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Configure Firebase for android + windows
         shell: bash

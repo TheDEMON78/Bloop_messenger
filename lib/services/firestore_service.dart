@@ -288,6 +288,62 @@ class FirestoreService {
     });
   }
 
+  Future<void> updatePresence(String uid, bool isOnline) async {
+    try {
+      await _db.collection('users').doc(uid).update({
+        'isOnline': isOnline,
+        'lastSeen': DateTime.now().millisecondsSinceEpoch,
+      });
+    } catch (_) {}
+  }
+
+  Future<void> saveFcmToken(String uid, String token) async {
+    try {
+      await _db.collection('users').doc(uid).update({'fcmToken': token});
+    } catch (_) {}
+  }
+
+  Future<void> setTyping(String conversationId, String uid, bool isTyping) async {
+    try {
+      await _db.collection('conversations').doc(conversationId).update({
+        'typing.$uid': isTyping ? FieldValue.serverTimestamp() : FieldValue.delete(),
+      });
+    } catch (_) {}
+  }
+
+  Stream<List<String>> typingStream(String conversationId, String myUid) =>
+      _db.collection('conversations').doc(conversationId).snapshots().map((s) {
+        final typing = s.data()?['typing'] as Map<String, dynamic>? ?? {};
+        final now = DateTime.now().millisecondsSinceEpoch;
+        return typing.entries
+            .where((e) => e.key != myUid)
+            .where((e) {
+              final ts = e.value;
+              if (ts is Timestamp) return now - ts.millisecondsSinceEpoch < 5000;
+              return false;
+            })
+            .map((e) => e.key)
+            .toList();
+      });
+
+  Future<void> toggleReaction(
+      String conversationId, String messageId, String uid, String emoji) async {
+    final ref = _db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId);
+    final doc = await ref.get();
+    final reactions =
+        Map<String, String>.from(doc.data()?['reactions'] as Map? ?? {});
+    if (reactions[uid] == emoji) {
+      reactions.remove(uid);
+    } else {
+      reactions[uid] = emoji;
+    }
+    await ref.update({'reactions': reactions});
+  }
+
   Future<void> deleteGroup(String conversationId) async {
     // Delete all messages then the conversation document
     final messages = await _db

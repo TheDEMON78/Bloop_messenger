@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/background_message_service.dart';
+import '../services/firestore_service.dart';
 
 enum AuthState {
   initial,
@@ -32,6 +34,10 @@ class AuthProvider extends ChangeNotifier {
       if (user != null && _state != AuthState.profileIncomplete) {
         _state = AuthState.authenticated;
         notifyServiceUid(user.uid);
+        FirestoreService().updatePresence(user.uid, true);
+        FirebaseMessaging.instance.getToken().then((token) {
+          if (token != null) FirestoreService().saveFcmToken(user.uid, token);
+        });
       } else if (user == null) {
         _state = AuthState.initial;
         notifyServiceSignOut();
@@ -95,6 +101,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    if (_user != null) {
+      await FirestoreService().updatePresence(_user!.uid, false);
+    }
     await _authService.signOut();
     _state = AuthState.initial;
     notifyListeners();

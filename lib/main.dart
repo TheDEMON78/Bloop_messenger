@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -10,6 +12,14 @@ import 'providers/chat_provider.dart';
 import 'providers/contacts_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/background_message_service.dart';
+import 'services/firestore_service.dart';
+
+final _localNotif = FlutterLocalNotificationsPlugin();
+
+@pragma('vm:entry-point')
+Future<void> _onBackgroundMessage(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +27,41 @@ void main() async {
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.playIntegrity,
   );
+
+  // FCM setup
+  FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
+  await FirebaseMessaging.instance.requestPermission();
+  await FirebaseMessaging.instance.subscribeToTopic('announcements');
+
+  // Local notifications for foreground FCM messages
+  await _localNotif.initialize(const InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+  ));
+  await _localNotif
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(const AndroidNotificationChannel(
+        'announcements', 'Annonces',
+        importance: Importance.high,
+      ));
+
+  FirebaseMessaging.onMessage.listen((message) async {
+    final n = message.notification;
+    if (n == null) return;
+    await _localNotif.show(
+      message.hashCode,
+      n.title,
+      n.body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'announcements', 'Annonces',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  });
+
   await initBackgroundService();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -116,8 +161,33 @@ ThemeData _lightTheme() => ThemeData(
       ),
     );
 
-class BloopMessengerApp extends StatelessWidget {
+class BloopMessengerApp extends StatefulWidget {
   const BloopMessengerApp({super.key});
+
+  @override
+  State<BloopMessengerApp> createState() => _BloopMessengerAppState();
+}
+
+class _BloopMessengerAppState extends State<BloopMessengerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final uid = context.read<AuthProvider>().user?.uid;
+    if (uid == null) return;
+    FirestoreService().updatePresence(uid, state == AppLifecycleState.resumed);
+  }
 
   @override
   Widget build(BuildContext context) {

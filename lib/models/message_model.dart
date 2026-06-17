@@ -12,6 +12,7 @@ class MessageModel {
   final String? replyToId;
   final bool isDeleted;
   final DateTime? editedAt;
+  final Map<String, String> reactions;
 
   const MessageModel({
     required this.id,
@@ -24,6 +25,7 @@ class MessageModel {
     this.replyToId,
     this.isDeleted = false,
     this.editedAt,
+    this.reactions = const {},
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map) => MessageModel(
@@ -45,6 +47,7 @@ class MessageModel {
         editedAt: map['editedAt'] != null
             ? DateTime.fromMillisecondsSinceEpoch(map['editedAt'] as int)
             : null,
+        reactions: Map<String, String>.from(map['reactions'] as Map? ?? {}),
       );
 
   Map<String, dynamic> toMap() => {
@@ -58,5 +61,6 @@ class MessageModel {
         'replyToId': replyToId,
         'isDeleted': isDeleted,
         if (editedAt != null) 'editedAt': editedAt!.millisecondsSinceEpoch,
+        'reactions': reactions,
       };
 }

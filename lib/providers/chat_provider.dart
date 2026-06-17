@@ -86,6 +86,10 @@ class ChatProvider extends ChangeNotifier {
   Future<void> deleteGroup(String conversationId) =>
       _db.deleteGroup(conversationId);
 
+  Future<void> toggleReaction(
+          String conversationId, String messageId, String uid, String emoji) =>
+      _db.toggleReaction(conversationId, messageId, uid, emoji);
+
   @override
   void dispose() {
     _convSub?.cancel();

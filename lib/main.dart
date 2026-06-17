@@ -31,13 +31,13 @@ void main() async {
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
+    if (!Platform.isWindows && !Platform.isLinux) {
+      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+    }
   } catch (_) {
-    // firebase_options.dart has no Windows entry yet — show setup instructions
     runApp(const _FirebaseNotConfiguredApp());
     return;
   }
-
-  await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
 
   runApp(
     MultiProvider(

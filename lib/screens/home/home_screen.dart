@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import '../../models/conversation_model.dart';
 import '../../providers/auth_provider.dart';
@@ -30,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<ChatProvider>().listenConversations(uid);
       context.read<ContactsProvider>().listenContacts(uid);
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FirebaseMessaging.instance.requestPermission();
+    });
   }
 
   @override

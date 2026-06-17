@@ -32,7 +32,6 @@ void main() async {
 
   // FCM setup
   FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
-  await FirebaseMessaging.instance.requestPermission();
   await FirebaseMessaging.instance.subscribeToTopic('announcements');
 
   // Local notifications for foreground FCM messages

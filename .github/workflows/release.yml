@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'windows/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/release.yml'
 
 jobs:
   setup:
@@ -13,12 +20,32 @@ jobs:
     outputs:
       version: ${{ steps.ver.outputs.version }}
       full: ${{ steps.ver.outputs.full }}
+      android: ${{ steps.filter.outputs.android }}
+      windows: ${{ steps.filter.outputs.windows }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            android:
+              - 'lib/**'
+              - 'android/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - '.github/workflows/release.yml'
+            windows:
+              - 'lib/**'
+              - 'windows/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - '.github/workflows/release.yml'
 
       - name: Compute version
         id: ver
@@ -32,6 +59,7 @@ jobs:
           echo "full=${FULL}" >> $GITHUB_OUTPUT
 
       - name: Generate release notes
+        if: steps.filter.outputs.android == 'true' || steps.filter.outputs.windows == 'true'
         run: |
           PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
             | grep '\[release\]' | head -1 | awk '{print $1}')
@@ -48,6 +76,7 @@ jobs:
           printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$NOTES" > release_notes.txt
 
       - name: Create GitHub Release
+        if: steps.filter.outputs.android == 'true' || steps.filter.outputs.windows == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.version }}
@@ -58,6 +87,7 @@ jobs:
 
   android:
     needs: setup
+    if: needs.setup.outputs.android == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -166,6 +196,7 @@ jobs:
 
   windows:
     needs: setup
+    if: needs.setup.outputs.windows == 'true'
     runs-on: windows-latest
     permissions:
       contents: write

@@ -216,21 +216,17 @@ jobs:
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Install FlutterFire CLI
+      - name: Install FlutterFire CLI and configure Firebase
         shell: powershell
-        run: |
-          dart pub global activate flutterfire_cli
-          "$env:LOCALAPPDATA\Pub\Cache\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Configure Firebase for android + windows
-        shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          flutterfire configure \
-            --project=bloop-messenger-95ea3 \
-            --platforms=android,windows \
-            --yes \
+          dart pub global activate flutterfire_cli
+          $env:PATH = "$env:LOCALAPPDATA\Pub\Cache\bin;$env:PATH"
+          flutterfire configure `
+            --project=bloop-messenger-95ea3 `
+            --platforms=android,windows `
+            --yes `
             --out=lib/firebase_options.dart
 
       - name: Regenerate Windows scaffold

@@ -21,10 +21,8 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   uuid: ^4.5.1
   package_info_plus: ^10.0.0
-  in_app_update: ^4.2.3
-  firebase_app_check: ^0.4.4+2
-  firebase_messaging: ^16.3.0
   firebase_analytics: ^12.4.2
+  window_manager: ^0.4.3
 
 dev_dependencies:
   flutter_test:

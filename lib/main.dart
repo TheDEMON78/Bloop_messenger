@@ -1,70 +1,37 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/contacts_provider.dart';
 import 'screens/splash_screen.dart';
-import 'services/background_message_service.dart';
 import 'services/firestore_service.dart';
-
-final _localNotif = FlutterLocalNotificationsPlugin();
-
-@pragma('vm:entry-point')
-Future<void> _onBackgroundMessage(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-  );
   await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
 
-  // FCM setup
-  FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
-  await FirebaseMessaging.instance.subscribeToTopic('announcements');
-
-  // Local notifications for foreground FCM messages
-  await _localNotif.initialize(const InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-  ));
-  await _localNotif
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(const AndroidNotificationChannel(
-        'announcements', 'Annonces',
-        importance: Importance.high,
-      ));
-
-  FirebaseMessaging.onMessage.listen((message) async {
-    final n = message.notification;
-    if (n == null) return;
-    await _localNotif.show(
-      message.hashCode,
-      n.title,
-      n.body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'announcements', 'Annonces',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
+  if (Platform.isWindows) {
+    await windowManager.ensureInitialized();
+    await windowManager.waitUntilReadyToShow(
+      const WindowOptions(
+        size: Size(1100, 720),
+        minimumSize: Size(800, 600),
+        center: true,
+        title: 'Bloop Messenger',
+        backgroundColor: Colors.transparent,
+        titleBarStyle: TitleBarStyle.normal,
       ),
     );
-  });
-
-  await initBackgroundService();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await windowManager.show();
+    await windowManager.focus();
+  }
 
   runApp(
     MultiProvider(

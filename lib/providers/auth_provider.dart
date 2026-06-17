@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/background_message_service.dart';
@@ -27,7 +26,6 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
 
   AuthProvider() {
-    // Sync init so HomeScreen.initState gets the UID immediately on restart
     _user = FirebaseAuth.instance.currentUser;
     _authService.authStateChanges.listen((user) {
       _user = user;
@@ -35,9 +33,6 @@ class AuthProvider extends ChangeNotifier {
         _state = AuthState.authenticated;
         notifyServiceUid(user.uid);
         FirestoreService().updatePresence(user.uid, true);
-        FirebaseMessaging.instance.getToken().then((token) {
-          if (token != null) FirestoreService().saveFcmToken(user.uid, token);
-        });
       } else if (user == null) {
         _state = AuthState.initial;
         notifyServiceSignOut();

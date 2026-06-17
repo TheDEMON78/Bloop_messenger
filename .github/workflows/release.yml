@@ -108,7 +108,8 @@ jobs:
         run: flutter pub get
 
       - name: Set version in pubspec
-        run: sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
+        run: |
+          sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/bloop-messenger-release.jks
@@ -240,7 +241,8 @@ jobs:
 
       - name: Set version in pubspec
         shell: bash
-        run: sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
+        run: |
+          sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
 
       - name: Build Windows
         run: flutter build windows --release

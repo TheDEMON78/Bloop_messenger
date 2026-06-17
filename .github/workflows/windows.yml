@@ -32,7 +32,10 @@ jobs:
           [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.FIREBASE_OPTIONS_DART }}")) | Out-File -FilePath lib/firebase_options.dart -Encoding UTF8
 
       - name: Regenerate Windows scaffold
-        run: flutter create --platforms=windows .
+        shell: powershell
+        run: |
+          if (Test-Path windows) { Remove-Item -Recurse -Force windows }
+          flutter create --platforms=windows .
 
       - name: Cache pub packages
         uses: actions/cache@v4

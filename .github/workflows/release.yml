@@ -15,8 +15,6 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       version: ${{ steps.ver.outputs.version }}
       full: ${{ steps.ver.outputs.full }}
@@ -57,33 +55,6 @@ jobs:
           FULL="${VERSION}+${COUNT}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "full=${FULL}" >> $GITHUB_OUTPUT
-
-      - name: Generate release notes
-        if: steps.filter.outputs.android == 'true' || steps.filter.outputs.windows == 'true'
-        run: |
-          PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
-            | grep '\[release\]' | head -1 | awk '{print $1}')
-          if [ -z "$PREV_RELEASE" ]; then
-            PREV_RELEASE=$(git rev-list --max-parents=0 HEAD)
-          fi
-          NOTES=$(git log ${PREV_RELEASE}..HEAD --pretty=format:"• %s" \
-            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:\|feat:\|refactor:\|perf:\|test:\|sha\|fingerprint\|keystore\|firebase_\|pubspec\|version\|gradle' \
-            | awk '!seen[$0]++' \
-            | head -10)
-          if [ -z "$NOTES" ]; then
-            NOTES="• Améliorations et corrections diverses"
-          fi
-          printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$NOTES" > release_notes.txt
-
-      - name: Create GitHub Release
-        if: steps.filter.outputs.android == 'true' || steps.filter.outputs.windows == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: Bloop Messenger v${{ steps.ver.outputs.version }}
-          body_path: release_notes.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   android:
     needs: setup
@@ -157,7 +128,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --android-skip-build-dependency-validation
 
-      - name: Generate whatsnew for Play Store
+      - name: Generate release notes
         run: |
           PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
             | grep '\[release\]' | head -1 | awk '{print $1}')
@@ -171,17 +142,21 @@ jobs:
           if [ -z "$NOTES" ]; then
             NOTES="• Améliorations et corrections diverses"
           fi
+          printf "Bloop Messenger v${{ needs.setup.outputs.full }}\n\n%s" "$NOTES" > release_notes.txt
           mkdir -p whatsnew
           printf "%s" "$NOTES" > whatsnew/whatsnew-fr-FR
 
-      - name: Upload Android artifacts to release
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.setup.outputs.version }}
+          name: Bloop Messenger v${{ needs.setup.outputs.version }}
+          body_path: release_notes.txt
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload v${{ needs.setup.outputs.version }} \
-            build/app/outputs/flutter-apk/app-release.apk \
-            build/app/outputs/bundle/release/app-release.aab \
-            --repo ${{ github.repository }} --clobber
 
       - name: Upload to Play Store
         if: contains(github.event.head_commit.message, '[release]')
@@ -259,11 +234,11 @@ jobs:
           Compress-Archive -Path build\windows\x64\runner\Release\* `
             -DestinationPath bloop-messenger-windows-v${{ needs.setup.outputs.version }}.zip
 
-      - name: Upload Windows artifact to release
-        shell: bash
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.setup.outputs.version }}
+          name: Bloop Messenger v${{ needs.setup.outputs.version }}
+          files: bloop-messenger-windows-v${{ needs.setup.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload v${{ needs.setup.outputs.version }} \
-            bloop-messenger-windows-v${{ needs.setup.outputs.version }}.zip \
-            --repo ${{ github.repository }} --clobber

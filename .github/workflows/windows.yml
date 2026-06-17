@@ -23,6 +23,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
       - name: Generate firebase_options.dart
         run: |
           [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.FIREBASE_OPTIONS_DART }}")) | Out-File -FilePath lib/firebase_options.dart -Encoding UTF8
@@ -37,9 +40,6 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Enable Windows desktop
-        run: flutter config --enable-windows-desktop
 
       - name: Compute version
         id: ver

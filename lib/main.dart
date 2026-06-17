@@ -14,24 +14,30 @@ import 'services/firestore_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
 
+  // On Windows: show the window FIRST so it's always visible even if init fails
   if (Platform.isWindows) {
     await windowManager.ensureInitialized();
-    await windowManager.waitUntilReadyToShow(
-      const WindowOptions(
-        size: Size(1100, 720),
-        minimumSize: Size(800, 600),
-        center: true,
-        title: 'Bloop Messenger',
-        backgroundColor: Colors.transparent,
-        titleBarStyle: TitleBarStyle.normal,
-      ),
-    );
+    await windowManager.waitUntilReadyToShow(const WindowOptions(
+      size: Size(1100, 720),
+      minimumSize: Size(800, 600),
+      center: true,
+      title: 'Bloop Messenger',
+    ));
     await windowManager.show();
     await windowManager.focus();
   }
+
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {
+    // firebase_options.dart has no Windows entry yet — show setup instructions
+    runApp(const _FirebaseNotConfiguredApp());
+    return;
+  }
+
+  await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
 
   runApp(
     MultiProvider(
@@ -43,6 +49,47 @@ void main() async {
       child: const BloopMessengerApp(),
     ),
   );
+}
+
+class _FirebaseNotConfiguredApp extends StatelessWidget {
+  const _FirebaseNotConfiguredApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF0A0A0F),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.warning_amber_rounded,
+                    color: Color(0xFF00F5FF), size: 64),
+                SizedBox(height: 24),
+                Text(
+                  'Firebase non configuré pour Windows',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Lancez flutterfire configure --platforms=android,windows\npuis mettez à jour le secret FIREBASE_OPTIONS_DART.',
+                  style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 ThemeData _darkTheme() => ThemeData(

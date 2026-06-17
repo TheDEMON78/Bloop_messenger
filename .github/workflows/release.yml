@@ -6,7 +6,58 @@ on:
       - main
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      full: ${{ steps.ver.outputs.full }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: ver
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          MINOR=$((COUNT / 100))
+          PATCH=$((COUNT % 100))
+          VERSION="1.${MINOR}.${PATCH}"
+          FULL="${VERSION}+${COUNT}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "full=${FULL}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        run: |
+          PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
+            | grep '\[release\]' | head -1 | awk '{print $1}')
+          if [ -z "$PREV_RELEASE" ]; then
+            PREV_RELEASE=$(git rev-list --max-parents=0 HEAD)
+          fi
+          NOTES=$(git log ${PREV_RELEASE}..HEAD --pretty=format:"• %s" \
+            | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:\|feat:\|refactor:\|perf:\|test:\|sha\|fingerprint\|keystore\|firebase_\|pubspec\|version\|gradle' \
+            | awk '!seen[$0]++' \
+            | head -10)
+          if [ -z "$NOTES" ]; then
+            NOTES="• Améliorations et corrections diverses"
+          fi
+          printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$NOTES" > release_notes.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Bloop Messenger v${{ steps.ver.outputs.version }}
+          body_path: release_notes.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   android:
+    needs: setup
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -56,17 +107,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Compute version
-        id: ver
-        run: |
-          COUNT=$(git rev-list --count HEAD)
-          MINOR=$((COUNT / 100))
-          PATCH=$((COUNT % 100))
-          VERSION="1.${MINOR}.${PATCH}"
-          FULL="${VERSION}+${COUNT}"
-          sed -i "s/^version: .*/version: ${FULL}/" pubspec.yaml
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "full=${FULL}" >> $GITHUB_OUTPUT
+      - name: Set version in pubspec
+        run: sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/bloop-messenger-release.jks
@@ -84,7 +126,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --android-skip-build-dependency-validation
 
-      - name: Generate release notes
+      - name: Generate whatsnew for Play Store
         run: |
           PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
             | grep '\[release\]' | head -1 | awk '{print $1}')
@@ -98,23 +140,17 @@ jobs:
           if [ -z "$NOTES" ]; then
             NOTES="• Améliorations et corrections diverses"
           fi
-
-          printf "Bloop Messenger v${{ steps.ver.outputs.full }}\n\n%s" "$NOTES" > release_notes.txt
-
           mkdir -p whatsnew
           printf "%s" "$NOTES" > whatsnew/whatsnew-fr-FR
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: Bloop Messenger v${{ steps.ver.outputs.version }}
-          body_path: release_notes.txt
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+      - name: Upload Android artifacts to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v${{ needs.setup.outputs.version }} \
+            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/bundle/release/app-release.aab \
+            --repo ${{ github.repository }} --clobber
 
       - name: Upload to Play Store
         if: contains(github.event.head_commit.message, '[release]')
@@ -128,6 +164,7 @@ jobs:
           whatsNewDirectory: whatsnew
 
   windows:
+    needs: setup
     runs-on: windows-latest
     permissions:
       contents: write
@@ -168,18 +205,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Compute version
-        id: ver
+      - name: Set version in pubspec
         shell: bash
-        run: |
-          COUNT=$(git rev-list --count HEAD)
-          MINOR=$((COUNT / 100))
-          PATCH=$((COUNT % 100))
-          VERSION="1.${MINOR}.${PATCH}"
-          FULL="${VERSION}+${COUNT}"
-          sed -i "s/^version: .*/version: ${FULL}/" pubspec.yaml
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "full=${FULL}" >> $GITHUB_OUTPUT
+        run: sed -i "s/^version: .*/version: ${{ needs.setup.outputs.full }}/" pubspec.yaml
 
       - name: Build Windows
         run: flutter build windows --release
@@ -187,17 +215,14 @@ jobs:
       - name: Create installer zip
         shell: powershell
         run: |
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath bloop-messenger-windows-v${{ steps.ver.outputs.version }}.zip
+          Compress-Archive -Path build\windows\x64\runner\Release\* `
+            -DestinationPath bloop-messenger-windows-v${{ needs.setup.outputs.version }}.zip
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: windows-v${{ steps.ver.outputs.version }}
-          name: Bloop Messenger Windows v${{ steps.ver.outputs.version }}
-          body: |
-            Version Windows de Bloop Messenger.
-
-            **Installation :** extraire le zip et lancer `bloop_messenger.exe`
-          files: bloop-messenger-windows-v${{ steps.ver.outputs.version }}.zip
+      - name: Upload Windows artifact to release
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v${{ needs.setup.outputs.version }} \
+            bloop-messenger-windows-v${{ needs.setup.outputs.version }}.zip \
+            --repo ${{ github.repository }} --clobber

@@ -24,7 +24,7 @@ dependencies:
   in_app_update: ^4.2.3
   firebase_app_check: ^0.4.4+2
   firebase_messaging: ^16.3.0
-  firebase_analytics: ^11.3.0
+  firebase_analytics: ^12.4.2
 
 dev_dependencies:
   flutter_test:

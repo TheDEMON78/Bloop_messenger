@@ -82,10 +82,10 @@ jobs:
 
       - name: Create key.properties
         run: |
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}"  > android/key.properties
-          echo "keyPassword=${{ secrets.STORE_PASSWORD }}"   >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}"           >> android/key.properties
-          echo "storeFile=bloop-messenger-release.jks"       >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}"                        > android/key.properties
+          echo "keyPassword=${{ secrets.STORE_PASSWORD }}"                         >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}"                                 >> android/key.properties
+          echo "storeFile=$(pwd)/android/app/bloop-messenger-release.jks"          >> android/key.properties
 
       - name: Build App Bundle
         run: flutter build appbundle --release --android-skip-build-dependency-validation

@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:in_app_update/in_app_update.dart';
 import 'auth/phone_screen.dart';
 import 'home/home_screen.dart';
 
@@ -31,14 +30,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkUpdateThenNavigate() async {
-    // Check for Play Store update (silently ignore any error)
-    try {
-      final info = await InAppUpdate.checkForUpdate();
-      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        await InAppUpdate.performImmediateUpdate();
-      }
-    } catch (_) {}
-
     // Wait the splash delay then navigate
     await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;

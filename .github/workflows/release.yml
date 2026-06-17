@@ -86,11 +86,12 @@ jobs:
 
       - name: Generate release notes
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          PREV_RELEASE=$(git log --pretty=format:"%H %s" HEAD^ 2>/dev/null \
+            | grep '\[release\]' | head -1 | awk '{print $1}')
+          if [ -z "$PREV_RELEASE" ]; then
+            PREV_RELEASE=$(git rev-list --max-parents=0 HEAD)
           fi
-          NOTES=$(git log ${PREV_TAG}..HEAD --pretty=format:"• %s" \
+          NOTES=$(git log ${PREV_RELEASE}..HEAD --pretty=format:"• %s" \
             | grep -vi '\[release\]\|\[skip\]\|deploy\|workflow\|ci:\|build:\|chore:\|fix:\|feat:\|refactor:\|perf:\|test:\|sha\|fingerprint\|keystore\|firebase_\|pubspec\|version\|gradle' \
             | awk '!seen[$0]++' \
             | head -10)

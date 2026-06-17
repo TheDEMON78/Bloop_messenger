@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import '../firebase_options.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -14,6 +18,14 @@ class AuthService {
     required void Function(FirebaseAuthException) onError,
     required void Function(String, int?) onCodeSent,
   }) async {
+    if (Platform.isWindows) {
+      await _sendSmsRestApi(
+        phoneNumber: phoneNumber,
+        onError: onError,
+        onCodeSent: onCodeSent,
+      );
+      return;
+    }
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: onAutoVerify,
@@ -23,6 +35,48 @@ class AuthService {
       codeAutoRetrievalTimeout: (_) {},
       timeout: const Duration(seconds: 60),
     );
+  }
+
+  // Windows: envoie le SMS via l'API REST Firebase (bypass verifyPhoneNumber
+  // qui n'est pas supporté sur desktop). Fonctionne sans reCAPTCHA pour les
+  // numéros de test Firebase Console. Pour les vrais numéros, Firebase retourne
+  // CAPTCHA_CHECK_FAILED — on affiche alors un message clair.
+  Future<void> _sendSmsRestApi({
+    required String phoneNumber,
+    required void Function(FirebaseAuthException) onError,
+    required void Function(String, int?) onCodeSent,
+  }) async {
+    try {
+      final apiKey = DefaultFirebaseOptions.currentPlatform.apiKey;
+      final res = await http.post(
+        Uri.parse(
+          'https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=$apiKey',
+        ),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'phoneNumber': phoneNumber,
+          'recaptchaToken': 'flutter-windows-desktop',
+        }),
+      );
+      final body = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 200 && body['sessionInfo'] != null) {
+        onCodeSent(body['sessionInfo'] as String, null);
+        return;
+      }
+      final errorMsg =
+          (body['error'] as Map<String, dynamic>?)?['message'] as String? ??
+              'Erreur inconnue';
+      final friendlyMsg = errorMsg.contains('CAPTCHA')
+          ? 'Authentification par SMS non disponible sur Windows pour les vrais numéros. '
+            'Connecte-toi depuis l\'app mobile puis reviens ici.'
+          : errorMsg;
+      onError(FirebaseAuthException(
+          code: errorMsg.toLowerCase().replaceAll(' ', '-'),
+          message: friendlyMsg));
+    } catch (e) {
+      onError(FirebaseAuthException(
+          code: 'network-error', message: 'Erreur réseau : $e'));
+    }
   }
 
   Future<UserCredential> signInWithCredential(PhoneAuthCredential credential) =>

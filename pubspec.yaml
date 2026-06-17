@@ -23,6 +23,7 @@ dependencies:
   package_info_plus: ^10.0.0
   firebase_analytics: ^12.4.2
   window_manager: ^0.4.3
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:

@@ -71,14 +71,14 @@ jobs:
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/bloop-messenger-release.jks
 
-      - name: Print SHA-256 fingerprint (add this to Firebase Console)
+      - name: Print SHA-1 and SHA-256 fingerprints (add both to Firebase Console)
         run: |
           keytool -list -v \
             -keystore android/app/bloop-messenger-release.jks \
             -alias "${{ secrets.KEY_ALIAS }}" \
             -storepass "${{ secrets.STORE_PASSWORD }}" \
             -keypass "${{ secrets.STORE_PASSWORD }}" \
-            2>/dev/null | grep "SHA256:"
+            2>/dev/null | grep -E "SHA1:|SHA256:"
 
       - name: Create key.properties
         run: |
